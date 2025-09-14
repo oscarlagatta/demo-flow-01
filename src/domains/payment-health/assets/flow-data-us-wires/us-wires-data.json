@@ -1,0 +1,356 @@
+{
+  "nodes": [
+    {
+      "id": "11554",
+      "data": { "label": "Swift Gateway" },
+      "class": "origination"
+    },
+    {
+      "id": "48581",
+      "data": { "label": "Loan IQ" },
+      "class": "origination"
+    },
+    {
+      "id": "41107",
+      "data": { "label": "CashPro Mobile" },
+      "class": "origination"
+    },
+    {
+      "id": "11697",
+      "data": { "label": "CPO API Gateway" },
+      "class": "origination"
+    },
+    {
+      "id": "54071",
+      "data": { "label": "B2Bi" },
+      "class": "origination"
+    },
+    {
+      "id": "512",
+      "data": { "label": "Swift Alliance" },
+      "class": "payment validation and routing"
+    },
+    {
+      "id": "70199",
+      "data": { "label": "GPO" },
+      "class": "payment validation and routing"
+    },
+    {
+      "id": "28960",
+      "data": { "label": "CashPro Payments" },
+      "class": "payment validation and routing"
+    },
+    {
+      "id": "15227",
+      "data": { "label": "FRP US" },
+      "class": "payment validation and routing"
+    },
+    {
+      "id": "31427",
+      "data": { "label": "PSR" },
+      "class": "payment validation and routing"
+    },
+    {
+      "id": "834",
+      "data": { "label": "ECS" },
+      "class": "payment validation and routing"
+    },
+    {
+      "id": "60745",
+      "data": { "label": "RPI" },
+      "class": "middleware"
+    },
+    {
+      "id": "4679",
+      "data": { "label": "HRP" },
+      "class": "middleware"
+    },
+    {
+      "id": "515",
+      "data": { "label": "GPS Aries" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "62686",
+      "data": { "label": "GTMS (Limits)" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "46951",
+      "data": { "label": "ETS (Sanctions)" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "73929",
+      "data": { "label": "GFD (Fraud)" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "1901",
+      "data": { "label": "WTX" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "882",
+      "data": { "label": "RGBW" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "74014",
+      "data": { "label": "RTPFP" },
+      "class": "payment processing, sanctions and investigation"
+    },
+    {
+      "id": "bg-origination",
+      "type": "background",
+      "label": "Origination & Receipt"
+    },
+    {
+      "id": "bg-validation",
+      "type": "background",
+      "label": "Validation & Enrichment"
+    },
+    {
+      "id": "bg-middleware",
+      "type": "background",
+      "label": "Payment Processing, Sanctions & Investigation"
+    },
+    {
+      "id": "bg-processing",
+      "type": "background",
+      "label": "Accounting & Statement Processing"
+    },
+    {
+      "id": "node-1",
+      "parentId": "bg-origination",
+      "title": "GPP (UI)",
+      "subtext": "Global PayPlus"
+    },
+    {
+      "id": "node-2",
+      "parentId": "bg-origination",
+      "title": "Third Party",
+      "subtext": "e.g., Bottomline"
+    },
+    {
+      "id": "node-3",
+      "parentId": "bg-origination",
+      "title": "Manual",
+      "subtext": "Internal System"
+    },
+    {
+      "id": "node-4",
+      "parentId": "bg-validation",
+      "title": "GVP",
+      "subtext": "Global Validation"
+    },
+    {
+      "id": "node-5",
+      "parentId": "bg-validation",
+      "title": "GPEP",
+      "subtext": "Payment Enrichment"
+    },
+    {
+      "id": "node-6",
+      "parentId": "bg-middleware",
+      "title": "GTMS (Limits)",
+      "subtext": "Transaction Monitoring"
+    },
+    {
+      "id": "node-7",
+      "parentId": "bg-middleware",
+      "title": "ETS (Sanctions)",
+      "subtext": "Enterprise Sanctions"
+    },
+    {
+      "id": "node-8",
+      "parentId": "bg-middleware",
+      "title": "GFD (Fraud)",
+      "subtext": "Fraud Detection"
+    },
+    {
+      "id": "node-9",
+      "parentId": "bg-middleware",
+      "title": "GPP (Engine)",
+      "subtext": "Global PayPlus"
+    },
+    {
+      "id": "node-10",
+      "parentId": "bg-processing",
+      "title": "Accounting",
+      "subtext": "Financial Records"
+    },
+    {
+      "id": "node-11",
+      "parentId": "bg-processing",
+      "title": "Statements",
+      "subtext": "Customer Statements"
+    }
+  ],
+  "edges": [
+    {
+      "id": "11554-512",
+      "source": "11554",
+      "target": "512",
+      "type": "step"
+    },
+    {
+      "id": "48581-4679",
+      "source": "48581",
+      "target": "4679",
+      "type": "step"
+    },
+    {
+      "id": "41107-28960",
+      "source": "41107",
+      "target": "28960",
+      "type": "step"
+    },
+    {
+      "id": "41107-11697",
+      "source": "41107",
+      "target": "11697",
+      "type": "step"
+    },
+    {
+      "id": "41107-54071",
+      "source": "41107",
+      "target": "54071",
+      "type": "step"
+    },
+    {
+      "id": "54071-834",
+      "source": "54071",
+      "target": "834",
+      "type": "step"
+    },
+    {
+      "id": "512-74014",
+      "source": "512",
+      "target": "74014",
+      "type": "step"
+    },
+    {
+      "id": "gpo-fan-out",
+      "source": "70199",
+      "target": ["28960", "74014", "515", "60745"],
+      "type": "step"
+    },
+    {
+      "id": "hrp-fan-out",
+      "source": "4679",
+      "target": ["1901", "882", "73929", "46951", "62686", "515"],
+      "type": "step"
+    },
+    {
+      "id": "28960-15227",
+      "source": "28960",
+      "target": "15227",
+      "type": "step"
+    },
+    {
+      "id": "28960-4679",
+      "source": "28960",
+      "target": "4679",
+      "type": "step"
+    },
+    {
+      "id": "28960-73929",
+      "source": "28960",
+      "target": "73929",
+      "type": "step"
+    },
+    {
+      "id": "15227-834",
+      "source": "15227",
+      "target": "834",
+      "type": "step"
+    },
+    {
+      "id": "31427-4679",
+      "source": "31427",
+      "target": "4679",
+      "type": "step"
+    },
+    {
+      "id": "834-4679",
+      "source": "834",
+      "target": "4679",
+      "type": "step"
+    },
+    {
+      "id": "60745-1901",
+      "source": "60745",
+      "target": "1901",
+      "type": "step"
+    },
+    {
+      "id": "60745-882",
+      "source": "60745",
+      "target": "882",
+      "type": "step"
+    },
+    {
+      "id": "1901-74014",
+      "source": "1901",
+      "target": "74014",
+      "type": "step"
+    },
+    {
+      "id": "882-74014",
+      "source": "882",
+      "target": "74014",
+      "type": "step"
+    },
+    {
+      "id": "e1-4",
+      "source": "node-1",
+      "target": "node-4"
+    },
+    {
+      "id": "e2-4",
+      "source": "node-2",
+      "target": "node-4"
+    },
+    {
+      "id": "e3-4",
+      "source": "node-3",
+      "target": "node-4"
+    },
+    {
+      "id": "e4-5",
+      "source": "node-4",
+      "target": "node-5"
+    },
+    {
+      "id": "e5-6",
+      "source": "node-5",
+      "target": "node-6"
+    },
+    {
+      "id": "e6-7",
+      "source": "node-6",
+      "target": "node-7"
+    },
+    {
+      "id": "e7-8",
+      "source": "node-7",
+      "target": "node-8"
+    },
+    {
+      "id": "e8-9",
+      "source": "node-8",
+      "target": "node-9"
+    },
+    {
+      "id": "e9-10",
+      "source": "node-9",
+      "target": "node-10"
+    },
+    {
+      "id": "e10-11",
+      "source": "node-10",
+      "target": "node-11"
+    }
+  ]
+}

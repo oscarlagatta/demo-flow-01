@@ -1,115 +1,93 @@
-'use client';
-import { KeyboardEvent, useMemo, useState } from 'react';
+"use client"
+import { type KeyboardEvent, useMemo, useState } from "react"
 
-import { Search, X } from 'lucide-react';
+import { Search, X } from "lucide-react"
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-// Make regex case-insensitive to match both upper/lower case
-const ID_REGEX = /^[a-z0-9]{6,}$/i;
+const ID_REGEX = /^[a-z0-9\-/]{6,}$/i
 
 interface SerachCriteria {
-  transactionId: string;
-  transactionAmount: string;
-  dateStart: string;
-  dateEnd: string;
+  transactionId: string
+  transactionAmount: string
+  dateStart: string
+  dateEnd: string
 }
 
 interface PaymentSearchBoxBaseProps {
   contextHook: () => {
-    searchByAll: (criteria: Partial<SerachCriteria>) => void;
-    clear: () => void;
-    isFetching: boolean;
-  };
-  title: string;
-  description: string;
+    searchByAll: (criteria: Partial<SerachCriteria>) => void
+    clear: () => void
+    isFetching: boolean
+  }
+  title: string
+  description: string
 }
-function PaymentSearchBoxBase({
-  contextHook,
-  title,
-  description,
-}: PaymentSearchBoxBaseProps) {
+function PaymentSearchBoxBase({ contextHook, title, description }: PaymentSearchBoxBaseProps) {
   // Removed unused "active" state
 
   const [searchCriteria, setSearchCriteria] = useState<SerachCriteria>({
-    transactionId: '',
-    transactionAmount: '',
-    dateStart: '',
-    dateEnd: '',
-  });
+    transactionId: "",
+    transactionAmount: "",
+    dateStart: "",
+    dateEnd: "",
+  })
 
-  const { searchByAll, clear: clearTx, isFetching: txFetching } = contextHook();
+  const { searchByAll, clear: clearTx, isFetching: txFetching } = contextHook()
 
   const handleInputChange = (field: keyof SerachCriteria, value: string) => {
     setSearchCriteria((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
+    }))
+  }
 
   // Use onKeyDown in React 19 instead of deprecated onKeyPress
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' && hasValidSearch && !isSearching) {
-      handleSearch();
+    if (e.key === "Enter" && hasValidSearch && !isSearching) {
+      handleSearch()
     }
-  };
+  }
 
   const validId = useMemo(
-    () => ID_REGEX.test((searchCriteria.transactionId || '').trim()),
-    [searchCriteria.transactionId]
-  );
+    () => ID_REGEX.test((searchCriteria.transactionId || "").trim()),
+    [searchCriteria.transactionId],
+  )
 
   const hasValidSearch = useMemo(() => {
-    const hasId = validId;
-    const hasAmount = searchCriteria.transactionAmount.trim() !== '';
-    const hasDateRange = Boolean(
-      (searchCriteria.dateStart || '').trim() ||
-        (searchCriteria.dateEnd || '').trim()
-    );
-    return hasId || hasAmount || hasDateRange;
-  }, [
-    validId,
-    searchCriteria.transactionAmount,
-    searchCriteria.dateStart,
-    searchCriteria.dateEnd,
-  ]);
+    const hasId = validId
+    const hasAmount = searchCriteria.transactionAmount.trim() !== ""
+    const hasDateRange = Boolean((searchCriteria.dateStart || "").trim() || (searchCriteria.dateEnd || "").trim())
+    return hasId || hasAmount || hasDateRange
+  }, [validId, searchCriteria.transactionAmount, searchCriteria.dateStart, searchCriteria.dateEnd])
 
-  const hasAnyValue = useMemo(
-    () => Object.values(searchCriteria).some((v) => v.trim() !== ''),
-    [searchCriteria]
-  );
+  const hasAnyValue = useMemo(() => Object.values(searchCriteria).some((v) => v.trim() !== ""), [searchCriteria])
 
   const handleSearch = async () => {
-    if (!hasValidSearch) return;
+    if (!hasValidSearch) return
 
     searchByAll({
       transactionId: searchCriteria.transactionId.trim() || undefined,
       transactionAmount: searchCriteria.transactionAmount.trim() || undefined,
       dateStart: searchCriteria.dateStart || undefined,
       dateEnd: searchCriteria.dateEnd || undefined,
-    });
-  };
+    })
+  }
 
   const handleClear = async () => {
     setSearchCriteria({
-      transactionId: '',
-      transactionAmount: '',
-      dateStart: '',
-      dateEnd: '',
-    });
-    clearTx();
-  };
+      transactionId: "",
+      transactionAmount: "",
+      dateStart: "",
+      dateEnd: "",
+    })
+    clearTx()
+  }
 
-  const isSearching = txFetching;
+  const isSearching = txFetching
 
   return (
     <Card className="bg-white shadow-md" data-tour="search-box">
@@ -127,9 +105,7 @@ function PaymentSearchBoxBase({
               type="text"
               placeholder="Enter transaction ID"
               value={searchCriteria.transactionId}
-              onChange={(e) =>
-                handleInputChange('transactionId', e.target.value)
-              }
+              onChange={(e) => handleInputChange("transactionId", e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSearching}
             />
@@ -144,9 +120,7 @@ function PaymentSearchBoxBase({
               type="text"
               placeholder="Enter transaction amount"
               value={searchCriteria.transactionAmount}
-              onChange={(e) =>
-                handleInputChange('transactionAmount', e.target.value)
-              }
+              onChange={(e) => handleInputChange("transactionAmount", e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSearching}
             />
@@ -161,7 +135,7 @@ function PaymentSearchBoxBase({
               type="date"
               placeholder="Enter date start"
               value={searchCriteria.dateStart}
-              onChange={(e) => handleInputChange('dateStart', e.target.value)}
+              onChange={(e) => handleInputChange("dateStart", e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSearching}
             />
@@ -176,7 +150,7 @@ function PaymentSearchBoxBase({
               type="date"
               placeholder="Enter date end"
               value={searchCriteria.dateEnd}
-              onChange={(e) => handleInputChange('dateEnd', e.target.value)}
+              onChange={(e) => handleInputChange("dateEnd", e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSearching}
             />
@@ -192,7 +166,7 @@ function PaymentSearchBoxBase({
               className="flex h-10 items-center gap-2"
             >
               <Search className="h-4 w-4" />
-              {isSearching ? 'Searching...' : 'Search Transaction'}
+              {isSearching ? "Searching..." : "Search Transaction"}
             </Button>
             {hasAnyValue && (
               <Button
@@ -210,7 +184,7 @@ function PaymentSearchBoxBase({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
 
-export default PaymentSearchBoxBase;
+export default PaymentSearchBoxBase

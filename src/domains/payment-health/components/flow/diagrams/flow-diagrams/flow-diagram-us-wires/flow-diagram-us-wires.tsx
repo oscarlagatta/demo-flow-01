@@ -356,6 +356,7 @@ const Flow = ({
         isDimmed,
         onClick: handleNodeClick,
         onActionClick: handleActionClick,
+        isMonitorMode: isMonitorMode, // Pass isMonitorMode through data
       }
 
       // Add processing time data for background nodes (sections)
@@ -366,7 +367,6 @@ const Flow = ({
             ...nodeData,
             duration: processingTimeInfo.averageTime,
             trend: processingTimeInfo.trend,
-            isMonitorMode: isMonitorMode,
           }
         }
       }
@@ -616,9 +616,9 @@ export function FlowDiagramUsWires({ isMonitorMode = false }: FlowDiagramUsWires
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       custom: (props) => <CustomNodeUsWires {...props} onHideSearch={() => setShowSearchBox((prev) => !prev)} />,
-      background: (props) => <SectionBackgroundNode {...props} isMonitorMode={isMonitorMode} />,
+      background: (props) => <SectionBackgroundNode {...props} />,
     }),
-    [isMonitorMode],
+    [],
   )
 
   return (

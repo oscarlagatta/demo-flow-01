@@ -13,17 +13,15 @@ export function AnimatedInfoSection({ isVisible }: AnimatedInfoSectionProps) {
   useEffect(() => {
     if (isVisible) {
       setShouldRender(true)
-      // Small delay to ensure DOM is ready before animation
       const timer = setTimeout(() => {
         setIsAnimating(true)
-      }, 10)
+      }, 50)
       return () => clearTimeout(timer)
     } else {
       setIsAnimating(false)
-      // Wait for animation to complete before unmounting
       const timer = setTimeout(() => {
         setShouldRender(false)
-      }, 300) // Match animation duration
+      }, 500)
       return () => clearTimeout(timer)
     }
   }, [isVisible])
@@ -34,11 +32,11 @@ export function AnimatedInfoSection({ isVisible }: AnimatedInfoSectionProps) {
 
   return (
     <div
-      className={`transition-all duration-300 ease-out ${
-        isAnimating ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-4px]"
+      className={`transition-all duration-500 ease-out ${
+        isAnimating ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-[-2px] scale-[0.98]"
       }`}
       style={{
-        transitionTimingFunction: "cubic-bezier(0.4, 0.0, 0.2, 1)",
+        transitionTimingFunction: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       }}
     >
       <InfoSection />

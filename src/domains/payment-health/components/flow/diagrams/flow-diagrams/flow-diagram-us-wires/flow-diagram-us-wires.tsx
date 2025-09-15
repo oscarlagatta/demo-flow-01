@@ -53,22 +53,6 @@ const GAP_WIDTH = 16
 
 type ActionType = "flow" | "trend" | "balanced"
 
-const useDebounce = <T,>(value: T, delay: number): T => {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value)
-    }, delay)
-
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [value, delay])
-
-  return debouncedValue
-}
-
 // Custom Draggable Component that works with React 19
 const DraggablePanel = ({
   children,
@@ -171,7 +155,6 @@ const Flow = ({
     action: null,
   })
   const width = useStore((state) => state.width)
-  const debouncedWidth = useDebounce(width, 100)
   const isAuthorized = true // hasRequiredRole();
   const {
     data: splunkData,
@@ -267,26 +250,14 @@ const Flow = ({
       })
       .sort()
   }, [selectedNodeId, connectedNodeIds, nodes])
-
-  const isUpdatingNodes = useRef(false)
-  const lastProcessedWidth = useRef<number>(0)
-
   useEffect(() => {
-    if (debouncedWidth <= 0 || isUpdatingNodes.current || Math.abs(debouncedWidth - lastProcessedWidth.current) < 5) {
-      return
-    }
-
-    isUpdatingNodes.current = true
-    lastProcessedWidth.current = debouncedWidth
-
-    const frameId = requestAnimationFrame(() => {
+    if (width > 0) {
       setNodes((currentNodes) => {
         const totalGapWidth = GAP_WIDTH * (SECTION_IDS.length - 1)
-        const availableWidth = debouncedWidth - totalGapWidth
+        const availableWidth = width - totalGapWidth
         let currentX = 0
         const newNodes = [...currentNodes]
         const sectionDimensions: Record<string, { x: number; width: number }> = {}
-
         // First pass: update background nodes and store their new dimensions
         for (let i = 0; i < SECTION_IDS.length; i++) {
           const sectionId = SECTION_IDS[i]
@@ -305,7 +276,6 @@ const Flow = ({
             currentX += sectionWidth + GAP_WIDTH
           }
         }
-
         // second pass: update child nodes based on their parent's new dimensions
         for (let i = 0; i < newNodes.length; i++) {
           const node = newNodes[i]
@@ -328,26 +298,14 @@ const Flow = ({
             }
           }
         }
-
-        setTimeout(() => {
-          isUpdatingNodes.current = false
-        }, 100)
-
         return newNodes
       })
-    })
-
-    return () => {
-      cancelAnimationFrame(frameId)
-      isUpdatingNodes.current = false
     }
-  }, [debouncedWidth])
-
+  }, [width])
   useEffect(() => {
-    if (nodes.length === 0 || isUpdatingNodes.current) return
-
-    const timeoutId = setTimeout(() => {
-      // calculate the bounding box of all nodes and adjust the canvas height
+    // calculate the bounding box of all nodes and adjust the canvas height
+    const updateCanvasHeight = () => {
+      if (nodes.length === 0) return
       let minY = Number.POSITIVE_INFINITY
       let maxY = Number.NEGATIVE_INFINITY
       nodes.forEach((node) => {
@@ -357,18 +315,10 @@ const Flow = ({
         maxY = Math.max(maxY, nodeY + nodeHeight)
       })
       const calculatedHeight = maxY - minY + 50
-
-      setCanvasHeight((prevHeight) => {
-        if (Math.abs(calculatedHeight - prevHeight) > 10) {
-          return calculatedHeight
-        }
-        return prevHeight
-      })
-    }, 150)
-
-    return () => clearTimeout(timeoutId)
+      setCanvasHeight(calculatedHeight)
+    }
+    updateCanvasHeight()
   }, [nodes])
-
   const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange<Node>[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes],
@@ -393,7 +343,6 @@ const Flow = ({
       ),
     [setEdges],
   )
-
   const nodesForFlow = useMemo(() => {
     return nodes.map((node) => {
       const isSelected = selectedNodeId === node.id
@@ -453,7 +402,6 @@ const Flow = ({
       }
     })
   }, [edges, connectedEdgeIds, selectedNodeId])
-
   const renderDataPanel = () => {
     if (isLoading || isLoadingProcessingTimes) {
       return (
@@ -648,7 +596,6 @@ const Flow = ({
     </div>
   )
 }
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

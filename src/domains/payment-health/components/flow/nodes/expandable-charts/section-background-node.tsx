@@ -23,7 +23,7 @@ const SectionBackgroundNode = ({ data }: NodeProps<SectionBackgroundNodeType>) =
       <div className="p-4">
         <h2 className="mb-3 text-center text-lg font-bold text-gray-700">{data.title}</h2>
         {data.isMonitorMode && data.duration && (
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-6">
             <SectionDurationBadge
               duration={data.duration}
               sectionName={data.title}

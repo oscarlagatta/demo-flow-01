@@ -32,12 +32,12 @@ import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splu
 import { useGetAverageProcessingTimes } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-average-processing-times"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
 import { computeTrafficStatusColors } from "@/domains/payment-health/utils/traffic-status-utils"
-import { InfoSection } from "../../../../indicators/info-section/info-section"
 import PaymentSearchBoxUsWires from "@/domains/payment-health/components/search/payment-search-box-us-wires/payment-search-box-us-wires"
 import SplunkTableUsWires from "@/domains/payment-health/components/tables/splunk-table-us-wires/splunk-table-us-wires"
 import { TransactionDetailsTableAgGrid } from "@/domains/payment-health/components/tables/transaction-details-table-ag-grid/transaction-details-table-ag-grid"
 import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
+import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -625,7 +625,7 @@ export function FlowDiagramUsWires({ isMonitorMode = false }: FlowDiagramUsWires
     <QueryClientProvider client={queryClient}>
       <ReactFlowProvider>
         {showSearchBox && <PaymentSearchBoxUsWires />}
-        {isMonitorMode && <InfoSection />}
+        <AnimatedInfoSection isVisible={isMonitorMode} />
         {showAmountSearchResults && amountSearchParams ? (
           <>
             <div>TransactionSearchResultsGrid Shows</div>

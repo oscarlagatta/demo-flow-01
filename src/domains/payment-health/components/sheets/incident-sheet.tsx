@@ -77,10 +77,10 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
     }
 
     if (!umidData?.umid) {
-      toast.error("Unable to create incident ticket", {
-        description: "UMID information is required but not available.",
+      // Show a confirmation toast but allow the user to proceed
+      toast.warning("Creating ticket without UMID data", {
+        description: "The incident ticket will be created without UMID information.",
       })
-      return
     }
 
     setIsSubmitting(true)
@@ -88,12 +88,16 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
       await createIncident({
         subject: formData.subject,
         severity: formData.severity,
-        umid: umidData.umid,
+        umid: umidData?.umid || null, // Allow null UMID
         description: formData.description,
       })
 
+      const successMessage = umidData?.umid
+        ? `Ticket created for ${nodeTitle} with ${formData.severity} severity. UMID: ${umidData.umid}`
+        : `Ticket created for ${nodeTitle} with ${formData.severity} severity.`
+
       toast.success("Incident Ticket Created!", {
-        description: `Ticket created for ${nodeTitle} with ${formData.severity} severity. UMID: ${umidData.umid}`,
+        description: successMessage,
         icon: <RefreshCw className="h-4 w-4 text-green-500" />,
       })
 
@@ -164,7 +168,7 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
             </div>
           )}
 
-          {umidData && (
+          {!isLoadingUmid && !isUmidError && umidData && umidData.umid && (
             <div className="space-y-2 rounded-md bg-blue-50 p-3 border border-blue-200">
               <div className="flex justify-between items-center">
                 <Label className="text-sm font-medium text-blue-900">UMID</Label>
@@ -173,6 +177,33 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
               <div className="space-y-1">
                 <Label className="text-sm font-medium text-blue-900">System Description</Label>
                 <p className="text-sm text-blue-700">{umidData.description}</p>
+              </div>
+            </div>
+          )}
+
+          {!isLoadingUmid && !isUmidError && (!umidData || !umidData.umid) && (
+            <div className="space-y-3 rounded-md bg-amber-50 p-4 border border-amber-200">
+              <div className="flex items-start space-x-2">
+                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center mt-0.5">
+                  <span className="text-amber-600 text-xs font-medium">!</span>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium text-amber-800">No UMID data available</p>
+                  <p className="text-sm text-amber-700">
+                    The system could not retrieve UMID information for AIT {aitId}. This may occur if the transaction is
+                    too recent or not yet processed.
+                  </p>
+                  <div className="text-xs text-amber-600 space-y-1">
+                    <p>
+                      <strong>Next steps:</strong>
+                    </p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-2">
+                      <li>Verify the AIT number is correct</li>
+                      <li>Wait a few minutes and try again</li>
+                      <li>You can still create the incident ticket manually</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           )}

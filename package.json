@@ -9,6 +9,14 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ag-grid-community/client-side-row-model": "latest",
+    "@ag-grid-community/core": "latest",
+    "@ag-grid-community/react": "latest",
+    "@ag-grid-community/styles": "latest",
+    "@ag-grid-enterprise/column-tool-panel": "latest",
+    "@ag-grid-enterprise/master-detail": "latest",
+    "@ag-grid-enterprise/menu": "latest",
+    "@ag-grid-enterprise/set-filter": "latest",
     "@bofa/data-services": "latest",
     "@eslint/eslintrc": "latest",
     "@hey-api/client-axios": "latest",
@@ -44,6 +52,7 @@
     "@tanstack/react-query": "latest",
     "@vercel/analytics": "1.3.1",
     "@xyflow/react": "latest",
+    "ag-grid-community": "latest",
     "autoprefixer": "^10.4.20",
     "axios": "latest",
     "class-variance-authority": "^0.7.1",

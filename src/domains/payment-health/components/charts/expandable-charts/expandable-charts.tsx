@@ -25,7 +25,7 @@ export default function ExpandableCharts(props: any) {
 
       observer.observe(containerRef.current)
 
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (containerRef.current) {
           const height = containerRef.current.scrollHeight
           setContentHeight(height)
@@ -35,8 +35,13 @@ export default function ExpandableCharts(props: any) {
         }
       }, 100)
 
-      return () => observer.disconnect()
+      return () => {
+        observer.disconnect()
+        clearTimeout(timeoutId)
+      }
     }
+
+    return undefined
   }, [isLoading, serviceId, props.onHeightChange])
 
   if (isLoading) {

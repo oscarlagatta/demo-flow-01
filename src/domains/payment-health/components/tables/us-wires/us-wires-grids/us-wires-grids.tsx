@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
+import { Loader2 } from "lucide-react"
 
 import { AgGridReact } from "@ag-grid-community/react"
 import "@ag-grid-community/styles/ag-grid.css"
@@ -53,8 +54,8 @@ const UsWiresGrids = () => {
         field: "iS_TRAFFIC_FLOWING",
         minWidth: 150,
         cellClassRules: {
-          "bg-[rgb(0,146,35)] text-white": (params: any) => params.value === "Yes", // Custom green background with white text for "Yes"
-          "bg-[rgb(230,22,34)] text-white": (params: any) => params.value === "No", // Custom red background with white text for "No"
+          "bg-[rgb(0,146,35)] text-white font-semibold": (params: any) => params.value === "Yes", // Custom green background with white text for "Yes"
+          "bg-[rgb(230,22,34)] text-white font-semibold": (params: any) => params.value === "No", // Custom red background with white text for "No"
         },
         cellStyle: {
           display: "flex",
@@ -68,9 +69,9 @@ const UsWiresGrids = () => {
         field: "_balanced",
         minWidth: 150,
         cellClassRules: {
-          "bg-[rgb(0,146,35)] text-white": (params: any) => /on-trend/i.test(params.value), // Custom green background with white text for "On-Trend"
-          "bg-[rgb(230,22,34)] text-white": (params: any) => /off-trend/i.test(params.value), // Custom red background with white text for "Off-Trend"
-          "bg-[rgb(234,118,0)] text-white": (params: any) => /approaching-trend/i.test(params.value), // Custom amber background with white text for "Approaching-Trend"
+          "bg-[rgb(0,146,35)] text-white font-semibold": (params: any) => /on-trend/i.test(params.value), // Custom green background with white text for "On-Trend"
+          "bg-[rgb(230,22,34)] text-white font-semibold": (params: any) => /off-trend/i.test(params.value), // Custom red background with white text for "Off-Trend"
+          "bg-[rgb(234,118,0)] text-white font-semibold": (params: any) => /approaching-trend/i.test(params.value), // Custom amber background with white text for "Approaching-Trend"
         } as Record<string, (params: any) => boolean>,
       },
       {
@@ -104,7 +105,12 @@ const UsWiresGrids = () => {
   )
 
   if (isLoading) {
-    return <p>Loading...</p>
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground font-medium">Loading data, please wait...</p>
+      </div>
+    )
   }
 
   if (isError) {

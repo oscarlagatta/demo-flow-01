@@ -54,7 +54,7 @@ const UsWiresGrids = () => {
         minWidth: 150,
         cellClassRules: {
           "bg-[rgb(0,146,35)] text-white": (params: any) => params.value === "Yes", // Custom green background with white text for "Yes"
-          "bg-red-100": (params: any) => params.value === "No", // Red background for "No"
+          "bg-[rgb(230,22,34)] text-white": (params: any) => params.value === "No", // Custom red background with white text for "No"
         },
         cellStyle: {
           display: "flex",
@@ -69,8 +69,8 @@ const UsWiresGrids = () => {
         minWidth: 150,
         cellClassRules: {
           "bg-[rgb(0,146,35)] text-white": (params: any) => /on-trend/i.test(params.value), // Custom green background with white text for "On-Trend"
-          "bg-red-100": (params: any) => /off-trend/i.test(params.value), // Red background for "Off-Trend"
-          "bg-amber-100": (params: any) => /approaching-trend/i.test(params.value), // Amber background for "Approaching-Trend"
+          "bg-[rgb(230,22,34)] text-white": (params: any) => /off-trend/i.test(params.value), // Custom red background with white text for "Off-Trend"
+          "bg-[rgb(234,118,0)] text-white": (params: any) => /approaching-trend/i.test(params.value), // Custom amber background with white text for "Approaching-Trend"
         } as Record<string, (params: any) => boolean>,
       },
       {

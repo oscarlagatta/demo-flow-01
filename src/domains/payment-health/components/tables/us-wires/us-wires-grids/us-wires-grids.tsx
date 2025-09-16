@@ -1,119 +1,114 @@
-import { useMemo } from 'react';
+"use client"
 
-import { AgGridReact } from '@ag-grid-community/react';
-import '@ag-grid-community/styles/ag-grid.css';
-import '@ag-grid-community/styles/ag-theme-quartz.css';
+import { useMemo } from "react"
 
-import usWiresData from '../../../../assets/flow-data-us-wires/us-wires-data.json';
+import { AgGridReact } from "@ag-grid-community/react"
+import "@ag-grid-community/styles/ag-grid.css"
+import "@ag-grid-community/styles/ag-theme-quartz.css"
 
-import { useGetSplunkUsWires } from '../../../../hooks/use-get-splunk-us-wires/use-get-splunk-us-wires';
+import usWiresData from "../../../../assets/flow-data-us-wires/us-wires-data.json"
 
-import {
-  directionFormatter,
-  formatNumber,
-  formatPercent,
-} from '../../../../utils/formatters';
+import { useGetSplunkUsWires } from "../../../../hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
+
+import { directionFormatter, formatNumber, formatPercent } from "../../../../utils/formatters"
 
 const UsWiresGrids = () => {
-  const { data: splunkData, isLoading, isError } = useGetSplunkUsWires();
+  const { data: splunkData, isLoading, isError } = useGetSplunkUsWires()
 
   // Group nodes by class
   const groupedNodes = useMemo(() => {
-    const nodes = usWiresData.nodes || [];
+    const nodes = usWiresData.nodes || []
     return nodes.reduce(
       (acc, node) => {
-        const group = node.class || 'unknown';
-        if (!acc[group]) acc[group] = [];
-        acc[group].push(node.id);
-        return acc;
+        const group = node.class || "unknown"
+        if (!acc[group]) acc[group] = []
+        acc[group].push(node.id)
+        return acc
       },
-      {} as Record<string, string[]>
-    );
-  }, []);
+      {} as Record<string, string[]>,
+    )
+  }, [])
 
   // Filter data for each class
   const groupedData = useMemo(() => {
-    if (!splunkData) return {};
+    if (!splunkData) return {}
     return Object.entries(groupedNodes).reduce(
       (acc, [className, ids]) => {
-        acc[className] = splunkData.filter((item) =>
-          ids.includes(item.aiT_NUM)
-        );
-        return acc;
+        acc[className] = splunkData.filter((item) => ids.includes(item.aiT_NUM))
+        return acc
       },
-      {} as Record<string, any[]>
-    );
-  }, [splunkData, groupedNodes]);
+      {} as Record<string, any[]>,
+    )
+  }, [splunkData, groupedNodes])
 
   // Define column definitions (reuse from splunk-table-us-wires)
   const columnDefs = useMemo(
     () => [
-      { headerName: 'AIT Number', field: 'aiT_NUM', minWidth: 120 },
-      { headerName: 'AIT Name', field: 'aiT_NAME', minWidth: 160 },
-      { headerName: 'Flow Direction', field: '_normDirection', minWidth: 150 },
+      { headerName: "AIT Number", field: "aiT_NUM", minWidth: 120 },
+      { headerName: "AIT Name", field: "aiT_NAME", minWidth: 160 },
+      { headerName: "Flow Direction", field: "_normDirection", minWidth: 150 },
 
       {
-        headerName: 'Is Traffic Flowing',
-        field: 'iS_TRAFFIC_FLOWING',
+        headerName: "Is Traffic Flowing",
+        field: "iS_TRAFFIC_FLOWING",
         minWidth: 150,
         cellClassRules: {
-          'bg-green-100': (params: any) => params.value === 'Yes', // Green background for "Yes"
-          'bg-red-100': (params: any) => params.value === 'No', // Red background for "No"
+          "bg-[rgb(0,146,35)] text-white": (params: any) => params.value === "Yes", // Custom green background with white text for "Yes"
+          "bg-red-100": (params: any) => params.value === "No", // Red background for "No"
         },
         cellStyle: {
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         },
       },
 
       {
-        headerName: 'Is Traffic On Trend',
-        field: '_balanced',
+        headerName: "Is Traffic On Trend",
+        field: "_balanced",
         minWidth: 150,
         cellClassRules: {
-          'bg-green-100': (params: any) => /on-trend/i.test(params.value), // Green background for "On-Trend"
-          'bg-red-100': (params: any) => /off-trend/i.test(params.value), // Red background for "Off-Trend"
-          'bg-amber-100': (params: any) =>
-            /approaching-trend/i.test(params.value), // Amber background for "Approaching-Trend"
+          "bg-[rgb(0,146,35)] text-white": (params: any) => /on-trend/i.test(params.value), // Custom green background with white text for "On-Trend"
+          "bg-red-100": (params: any) => /off-trend/i.test(params.value), // Red background for "Off-Trend"
+          "bg-amber-100": (params: any) => /approaching-trend/i.test(params.value), // Amber background for "Approaching-Trend"
         } as Record<string, (params: any) => boolean>,
       },
       {
-        headerName: 'Current Transaction Count',
-        field: 'currenT_TRANSACTION_COUNT',
+        headerName: "Current Transaction Count",
+        field: "currenT_TRANSACTION_COUNT",
         minWidth: 200,
         valueFormatter: (p: { value: any }) => formatNumber(p.value),
       },
 
       {
-        headerName: 'Average Transaction Count',
-        field: 'averagE_TRANSACTION_COUNT',
+        headerName: "Average Transaction Count",
+        field: "averagE_TRANSACTION_COUNT",
         minWidth: 200,
         valueFormatter: (p: { value: any }) => formatNumber(p.value),
       },
 
       {
-        headerName: 'Average Transaction Delta',
-        field: '_deltaPct',
+        headerName: "Average Transaction Delta",
+        field: "_deltaPct",
         minWidth: 190,
         valueFormatter: (p: { value: any }) => formatPercent(p.value),
       },
 
       {
-        headerName: 'Analytics Context',
-        field: '_analytics',
+        headerName: "Analytics Context",
+        field: "_analytics",
         minWidth: 220,
       },
     ],
-    []
-  );
+    [],
+  )
 
   if (isLoading) {
-    return <p>Loading...</p>;
+    return <p>Loading...</p>
   }
 
   if (isError) {
-    return <p>Error loading data.</p>;
+    return <p>Error loading data.</p>
   }
 
   // Render grids for each class
@@ -125,11 +120,9 @@ const UsWiresGrids = () => {
             <h3 className="mb-2 text-lg font-semibold">
               {className
                 .toLowerCase()
-                .split(' ')
-                .map(
-                  (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
-                )
-                .join(' ')}
+                .split(" ")
+                .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")}
             </h3>
 
             <div className="ag-theme-quartz w-full shadow-md">
@@ -137,21 +130,18 @@ const UsWiresGrids = () => {
                 rowData={data.map((r: any) => ({
                   ...r,
                   _deltaPct:
-                    Number.isFinite(r.averagE_TRANSACTION_COUNT) &&
-                    r.averagE_TRANSACTION_COUNT !== 0
-                      ? ((r.currenT_TRANSACTION_COUNT -
-                          r.averagE_TRANSACTION_COUNT) /
-                          r.averagE_TRANSACTION_COUNT) *
+                    Number.isFinite(r.averagE_TRANSACTION_COUNT) && r.averagE_TRANSACTION_COUNT !== 0
+                      ? ((r.currenT_TRANSACTION_COUNT - r.averagE_TRANSACTION_COUNT) / r.averagE_TRANSACTION_COUNT) *
                         100
                       : 0,
-                  _balanced: /on-trend/i.test(r.iS_TRAFFIC_ON_TREND || '')
-                    ? 'On-Trend'
-                    : /approaching-trend/i.test(r.iS_TRAFFIC_ON_TREND || '')
-                      ? 'Approaching-Trend'
-                      : 'Off-Trend',
-                  _analytics: /on-trend/i.test(r.iS_TRAFFIC_ON_TREND || '')
-                    ? ''
-                    : 'Current Volume is Statistically Low',
+                  _balanced: /on-trend/i.test(r.iS_TRAFFIC_ON_TREND || "")
+                    ? "On-Trend"
+                    : /approaching-trend/i.test(r.iS_TRAFFIC_ON_TREND || "")
+                      ? "Approaching-Trend"
+                      : "Off-Trend",
+                  _analytics: /on-trend/i.test(r.iS_TRAFFIC_ON_TREND || "")
+                    ? ""
+                    : "Current Volume is Statistically Low",
                   _normDirection: directionFormatter(r.floW_DIRECTION),
                 }))}
                 columnDefs={columnDefs}
@@ -170,10 +160,10 @@ const UsWiresGrids = () => {
               />
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
 
-export default UsWiresGrids;
+export default UsWiresGrids

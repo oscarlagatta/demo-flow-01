@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useServiceCharts } from "@/domains/payment-health/hooks/hooks"
 import ChartBlock from "@/domains/payment-health/components/charts/chart-block/chart-block"
@@ -8,30 +8,24 @@ import UsWiresGrids from "@/domains/payment-health/components/tables/us-wires/us
 export default function ExpandableCharts(props: any) {
   const serviceId = props.data.id
   const { data: chartData, isLoading } = useServiceCharts(serviceId)
-  const [contentHeight, setContentHeight] = useState<number>(600)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!isLoading && containerRef.current) {
+    if (!isLoading && containerRef.current && props.onHeightChange) {
       const observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const height = entry.contentRect.height
-          setContentHeight(height)
-          if (props.onHeightChange) {
-            props.onHeightChange(height)
-          }
+          props.onHeightChange(height)
         }
       })
 
       observer.observe(containerRef.current)
 
+      // Fallback height calculation after initial render
       const timeoutId = setTimeout(() => {
         if (containerRef.current) {
           const height = containerRef.current.scrollHeight
-          setContentHeight(height)
-          if (props.onHeightChange) {
-            props.onHeightChange(height)
-          }
+          props.onHeightChange(height)
         }
       }, 100)
 

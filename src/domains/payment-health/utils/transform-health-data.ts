@@ -35,7 +35,7 @@ export function transformHealthDataToChartPoints(
         y: throughputValue,
       }
     })
-    .filter((point) => {
+    .filter((point): point is ChartPoint => {
       return point !== null && !isNaN(point.y) && isFinite(point.y) && point.y >= 0
     })
     .sort((a, b) => {

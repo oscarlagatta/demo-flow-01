@@ -45,7 +45,30 @@ const UsWiresGrids = () => {
   // Define column definitions (reuse from splunk-table-us-wires)
   const columnDefs = useMemo(
     () => [
-      { headerName: "AIT Number", field: "aiT_NUM", minWidth: 120 },
+      {
+        headerName: "AIT Number",
+        field: "aiT_NUM",
+        minWidth: 120,
+        cellRenderer: (params: any) => {
+          const aitNumber = params.value
+          const url = `https://mycto.bankofamerica.com/ui/horiz/triage/#/widget?id=${aitNumber}`
+          return (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200"
+            >
+              {aitNumber}
+            </a>
+          )
+        },
+        cellStyle: {
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        },
+      },
       { headerName: "AIT Name", field: "aiT_NAME", minWidth: 160 },
       { headerName: "Flow Direction", field: "_normDirection", minWidth: 150 },
 

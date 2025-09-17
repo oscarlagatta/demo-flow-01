@@ -1,6 +1,8 @@
 "use client"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useServiceCharts } from "@/domains/payment-health/hooks/hooks"
+import { useHealthStatusTodayDate } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-health-status-today-hey-api"
+import { transformHealthDataToChartPoints, filterOutliers } from "@/domains/payment-health/utils/transform-health-data"
 import ChartBlock from "@/domains/payment-health/components/charts/chart-block/chart-block"
 import UsWiresGrids from "@/domains/payment-health/components/tables/us-wires/us-wires-grids/us-wires-grids"
 import AvailabilitySLOChart from "@/domains/payment-health/components/charts/availability-slo-chart/availability-slo-chart"
@@ -8,6 +10,16 @@ import AvailabilitySLOChart from "@/domains/payment-health/components/charts/ava
 export default function ExpandableCharts(props: any) {
   const serviceId = props.data.id
   const { data: chartData, isLoading } = useServiceCharts(serviceId)
+
+  const {
+    data: healthData,
+    isLoading: isHealthLoading,
+    isError: isHealthError,
+    isFetching: isHealthFetching,
+  } = useHealthStatusTodayDate()
+
+  const transformedHealthData = healthData ? transformHealthDataToChartPoints(healthData) : []
+  const filteredHealthData = filterOutliers(transformedHealthData)
 
   if (isLoading) {
     return (
@@ -41,11 +53,15 @@ export default function ExpandableCharts(props: any) {
         />
         <ChartBlock
           title="Current Hourly Average Today"
-          description="The Current Hourly Average to complete a transaction today is 3 seconds"
-          data={chartData?.currentHourlyAverage || []}
+          description="Real-time hourly average transaction completion time from Splunk data"
+          data={filteredHealthData}
           timeRanges={["Today", "Yesterday"]}
           yAxisLabel="Time in seconds"
           xAxisLabel="Time of the day"
+          isLoading={isHealthLoading || isHealthFetching}
+          isError={isHealthError}
+          thresholdValue={300}
+          thresholdLabel="Performance Threshold"
         />
       </div>
       {serviceId === "service-1" && (

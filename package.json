@@ -17,6 +17,7 @@
     "@ag-grid-enterprise/master-detail": "latest",
     "@ag-grid-enterprise/menu": "latest",
     "@ag-grid-enterprise/set-filter": "latest",
+    "@bofa/data-serces": "latest",
     "@bofa/data-services": "latest",
     "@eslint/eslintrc": "latest",
     "@hey-api/client-axios": "latest",

@@ -69,8 +69,19 @@ const UsWiresGrids = () => {
         headerName: "AIT Number",
         field: "aiT_NUM",
         minWidth: 120,
+        cellStyle: {
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        },
+      },
+      {
+        headerName: "AIT Name",
+        field: "aiT_NAME",
+        minWidth: 160,
         cellRenderer: (params: any) => {
-          const aitNumber = params.value
+          const aitNumber = params.data.aiT_NUM
+          const aitName = params.value
           const url =
             AIT_URL_MAPPING[aitNumber] || `https://mycto.bankofamerica.com/ui/horiz/triage/#/widget?id=${aitNumber}`
           return (
@@ -80,7 +91,7 @@ const UsWiresGrids = () => {
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200"
             >
-              {aitNumber}
+              {aitName}
             </a>
           )
         },
@@ -90,9 +101,7 @@ const UsWiresGrids = () => {
           alignItems: "center",
         },
       },
-      { headerName: "AIT Name", field: "aiT_NAME", minWidth: 160 },
       { headerName: "Flow Direction", field: "_normDirection", minWidth: 150 },
-
       {
         headerName: "Is Traffic Flowing",
         field: "iS_TRAFFIC_FLOWING",
@@ -107,7 +116,6 @@ const UsWiresGrids = () => {
           alignItems: "center",
         },
       },
-
       {
         headerName: "Is Traffic On Trend",
         field: "_balanced",
@@ -124,21 +132,18 @@ const UsWiresGrids = () => {
         minWidth: 200,
         valueFormatter: (p: { value: any }) => formatNumber(p.value),
       },
-
       {
         headerName: "Average Transaction Count",
         field: "averagE_TRANSACTION_COUNT",
         minWidth: 200,
         valueFormatter: (p: { value: any }) => formatNumber(p.value),
       },
-
       {
         headerName: "Average Transaction Delta",
         field: "_deltaPct",
         minWidth: 190,
         valueFormatter: (p: { value: any }) => formatPercent(p.value),
       },
-
       {
         headerName: "Analytics Context",
         field: "_analytics",

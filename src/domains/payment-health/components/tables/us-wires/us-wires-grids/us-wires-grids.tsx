@@ -13,6 +13,26 @@ import { useGetSplunkUsWires } from "../../../../hooks/use-get-splunk-us-wires/u
 
 import { directionFormatter, formatNumber, formatPercent } from "../../../../utils/formatters"
 
+const AIT_URL_MAPPING: Record<string, string> = {
+  "48581": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_origination",
+  "41107": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_origination",
+  "71800": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_origination",
+  "54071": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_swift",
+  "2119":
+    "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_payment_validation_and_routing",
+  "79109":
+    "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_payment_validation_cashpro_payments_v2",
+  "34257":
+    "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_payment_validation_and_routing",
+  "31427": "https://splunk.bankofamerica.com/en-US/app/gbam_home/e2e_mrp_rpi_trend",
+  "5679": "https://splunk.bankofamerica.com/en-US/app/gbam_home/e2e_mrp_rpi_trend",
+  "20473": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_payment_processing",
+  "46951": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_payment_processing",
+  "63591": "https://splunk.bankofamerica.com/en-US/app/gbam_home/us_wire_trend_dashboard_-_payment_processing",
+  "1921": "https://splunk.bankofamerica.com/en-US/app/gbam_home/e2e_wtx_trend_dashboard",
+  "882": "https://splunk.bankofamerica.com/en-US/app/gbam_home/e2e_wtx_trend_dashboard",
+}
+
 const UsWiresGrids = () => {
   const { data: splunkData, isLoading, isError } = useGetSplunkUsWires()
 
@@ -51,7 +71,8 @@ const UsWiresGrids = () => {
         minWidth: 120,
         cellRenderer: (params: any) => {
           const aitNumber = params.value
-          const url = `https://mycto.bankofamerica.com/ui/horiz/triage/#/widget?id=${aitNumber}`
+          const url =
+            AIT_URL_MAPPING[aitNumber] || `https://mycto.bankofamerica.com/ui/horiz/triage/#/widget?id=${aitNumber}`
           return (
             <a
               href={url}

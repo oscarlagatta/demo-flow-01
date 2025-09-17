@@ -1,0 +1,128 @@
+[
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T09:30:00",
+    "averageThruputTime": "88.72",
+    "averageThruputTime30": "87.83"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T10:00:00",
+    "averageThruputTime": "92.17",
+    "averageThruputTime30": "76.19"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T10:30:00",
+    "averageThruputTime": "88.06",
+    "averageThruputTime30": "66.91"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T11:00:00",
+    "averageThruputTime": "93.66",
+    "averageThruputTime30": "57.72"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T11:30:00",
+    "averageThruputTime": "97.89",
+    "averageThruputTime30": "62.39"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T12:00:00",
+    "averageThruputTime": "102.39",
+    "averageThruputTime30": "69.67"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T12:30:00",
+    "averageThruputTime": "31366.23",
+    "averageThruputTime30": "31336.26"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T13:00:00",
+    "averageThruputTime": "31379.43",
+    "averageThruputTime30": "31335.17"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T13:30:00",
+    "averageThruputTime": "178.60",
+    "averageThruputTime30": "113.87"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T14:00:00",
+    "averageThruputTime": "164.21",
+    "averageThruputTime30": "98.13"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T14:30:00",
+    "averageThruputTime": "166.96",
+    "averageThruputTime30": "83.55"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T15:00:00",
+    "averageThruputTime": "166.66",
+    "averageThruputTime30": "72.94"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T15:30:00",
+    "averageThruputTime": "175.38",
+    "averageThruputTime30": "75.96"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T16:00:00",
+    "averageThruputTime": "178.00",
+    "averageThruputTime30": "84.16"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T16:30:00",
+    "averageThruputTime": "182.07",
+    "averageThruputTime30": "83.67"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T17:00:00",
+    "averageThruputTime": "212.47",
+    "averageThruputTime30": "87.09"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T17:30:00",
+    "averageThruputTime": "348.88",
+    "averageThruputTime30": "92.76"
+  },
+  {
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-16T18:00:00",
+    "averageThruputTime": "411.36",
+    "averageThruputTime30": "96.62"
+  }
+]

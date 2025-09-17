@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
-import { Loader2 } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Loader2, X } from "lucide-react"
 
 import { AgGridReact } from "@ag-grid-community/react"
 import "@ag-grid-community/styles/ag-grid.css"
@@ -35,8 +35,8 @@ const AIT_URL_MAPPING: Record<string, string> = {
 
 const UsWiresGrids = () => {
   const { data: splunkData, isLoading, isError } = useGetSplunkUsWires()
+  const [iFrameData, setIFrameData] = useState<{ url: string; title: string } | null>(null)
 
-  // Group nodes by class
   const groupedNodes = useMemo(() => {
     const nodes = usWiresData.nodes || []
     return nodes.reduce(
@@ -50,7 +50,6 @@ const UsWiresGrids = () => {
     )
   }, [])
 
-  // Filter data for each class
   const groupedData = useMemo(() => {
     if (!splunkData) return {}
     return Object.entries(groupedNodes).reduce(
@@ -62,7 +61,6 @@ const UsWiresGrids = () => {
     )
   }, [splunkData, groupedNodes])
 
-  // Define column definitions (reuse from splunk-table-us-wires)
   const columnDefs = useMemo(
     () => [
       {
@@ -86,18 +84,15 @@ const UsWiresGrids = () => {
 
           if (url) {
             return (
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200"
+              <button
+                onClick={() => setIFrameData({ url, title: aitName })}
+                className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200 cursor-pointer bg-transparent border-none p-0"
               >
                 {aitName}
-              </a>
+              </button>
             )
           }
 
-          // Return plain text if no URL mapping exists
           return <span className="font-medium">{aitName}</span>
         },
         cellStyle: {
@@ -112,8 +107,8 @@ const UsWiresGrids = () => {
         field: "iS_TRAFFIC_FLOWING",
         minWidth: 150,
         cellClassRules: {
-          "bg-[rgb(0,146,35)] text-white font-semibold": (params: any) => params.value === "Yes", // Custom green background with white text for "Yes"
-          "bg-[rgb(230,22,34)] text-white font-semibold": (params: any) => params.value === "No", // Custom red background with white text for "No"
+          "bg-[rgb(0,146,35)] text-white font-semibold": (params: any) => params.value === "Yes",
+          "bg-[rgb(230,22,34)] text-white font-semibold": (params: any) => params.value === "No",
         },
         cellStyle: {
           display: "flex",
@@ -126,9 +121,9 @@ const UsWiresGrids = () => {
         field: "_balanced",
         minWidth: 150,
         cellClassRules: {
-          "bg-[rgb(0,146,35)] text-white font-semibold": (params: any) => /on-trend/i.test(params.value), // Custom green background with white text for "On-Trend"
-          "bg-[rgb(230,22,34)] text-white font-semibold": (params: any) => /off-trend/i.test(params.value), // Custom red background with white text for "Off-Trend"
-          "bg-[rgb(234,118,0)] text-white font-semibold": (params: any) => /approaching-trend/i.test(params.value), // Custom amber background with white text for "Approaching-Trend"
+          "bg-[rgb(0,146,35)] text-white font-semibold": (params: any) => /on-trend/i.test(params.value),
+          "bg-[rgb(230,22,34)] text-white font-semibold": (params: any) => /off-trend/i.test(params.value),
+          "bg-[rgb(234,118,0)] text-white font-semibold": (params: any) => /approaching-trend/i.test(params.value),
         } as Record<string, (params: any) => boolean>,
       },
       {
@@ -158,6 +153,10 @@ const UsWiresGrids = () => {
     [],
   )
 
+  const closeIFrame = () => {
+    setIFrameData(null)
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -171,9 +170,33 @@ const UsWiresGrids = () => {
     return <p>Error loading data.</p>
   }
 
-  // Render grids for each class
   return (
     <div className="space-y-6">
+      {iFrameData && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-5/6 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold text-gray-900">{iFrameData.title}</h2>
+              <button
+                onClick={closeIFrame}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 p-4">
+              <iframe
+                src={iFrameData.url}
+                className="w-full h-full border-0 rounded"
+                title={iFrameData.title}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {Object.entries(groupedData).map(([className, data]: [string, any[]]) => {
         return (
           <div key={className}>

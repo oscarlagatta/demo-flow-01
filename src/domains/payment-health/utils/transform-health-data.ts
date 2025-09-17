@@ -7,7 +7,20 @@ export function transformHealthDataToChartPoints(
 ): ChartPoint[] {
   return data
     .map((item) => {
-      const timeValue = item.healthstatusDateTime.toLocaleTimeString("en-US", {
+      let dateObj: Date
+      if (item.healthstatusDateTime instanceof Date) {
+        dateObj = item.healthstatusDateTime
+      } else {
+        // Parse string date - handle various formats
+        dateObj = new Date(item.healthstatusDateTime)
+        // Validate the parsed date
+        if (isNaN(dateObj.getTime())) {
+          console.warn(`[v0] Invalid date format: ${item.healthstatusDateTime}`)
+          return null // Will be filtered out
+        }
+      }
+
+      const timeValue = dateObj.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
@@ -23,7 +36,7 @@ export function transformHealthDataToChartPoints(
       }
     })
     .filter((point) => {
-      return !isNaN(point.y) && isFinite(point.y) && point.y >= 0
+      return point !== null && !isNaN(point.y) && isFinite(point.y) && point.y >= 0
     })
     .sort((a, b) => {
       return a.x.localeCompare(b.x)
@@ -60,7 +73,7 @@ export function getHealthDataStats(data: HealthStatusToday[]) {
 
 export function filterOutliers(data: ChartPoint[], threshold = 1000): ChartPoint[] {
   return data.filter((point) => {
-    const value = typeof point.y === "number" ? point.y : Number.parseFloat(point.y.toString())
+    const value = typeof point.y === "number" ? point.y : Number.parseFloat(String(point.y))
     return value < threshold && value >= 0
   })
 }

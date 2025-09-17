@@ -82,18 +82,23 @@ const UsWiresGrids = () => {
         cellRenderer: (params: any) => {
           const aitNumber = params.data.aiT_NUM
           const aitName = params.value
-          const url =
-            AIT_URL_MAPPING[aitNumber] || `https://mycto.bankofamerica.com/ui/horiz/triage/#/widget?id=${aitNumber}`
-          return (
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200"
-            >
-              {aitName}
-            </a>
-          )
+          const url = AIT_URL_MAPPING[aitNumber]
+
+          if (url) {
+            return (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200"
+              >
+                {aitName}
+              </a>
+            )
+          }
+
+          // Return plain text if no URL mapping exists
+          return <span className="font-medium">{aitName}</span>
         },
         cellStyle: {
           display: "flex",

@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useServiceCharts } from "@/domains/payment-health/hooks/hooks"
 import ChartBlock from "@/domains/payment-health/components/charts/chart-block/chart-block"
 import UsWiresGrids from "@/domains/payment-health/components/tables/us-wires/us-wires-grids/us-wires-grids"
+import AvailabilitySLOChart from "@/domains/payment-health/components/charts/availability-slo-chart/availability-slo-chart"
 
 export default function ExpandableCharts(props: any) {
   const serviceId = props.data.id
@@ -47,16 +48,26 @@ export default function ExpandableCharts(props: any) {
     )
   }
 
+  const mockAvailabilityData = [
+    { time: "00:00", availabilityPct: 99.975 },
+    { time: "04:00", availabilityPct: 99.972 },
+    { time: "08:00", availabilityPct: 99.978 },
+    { time: "12:00", availabilityPct: 99.981 },
+    { time: "16:00", availabilityPct: 99.976 },
+    { time: "20:00", availabilityPct: 99.973 },
+    { time: "24:00", availabilityPct: 99.977 },
+  ]
+
   return (
     <div ref={containerRef} className="w-full">
       <div className="grid gap-4 bg-gray-50 p-4 md:grid-cols-2">
-        <ChartBlock
-          title="Average Transaction Duration"
-          description="The Average Time to complete a transaction in the last 7 Days is 10 seconds"
-          data={chartData?.averageTransactionDuration || []}
+        <AvailabilitySLOChart
+          title="Availability vs SLO"
+          description="System availability compared to Service Level Objective over time"
+          data={mockAvailabilityData}
           timeRanges={["Last 7 Days", "Last 14 Days", "Last 30 Days"]}
-          yAxisLabel="Time in seconds"
-          xAxisLabel="Days"
+          sloPct={99.97}
+          source="System Monitoring Dashboard"
         />
         <ChartBlock
           title="Current Hourly Average Today"

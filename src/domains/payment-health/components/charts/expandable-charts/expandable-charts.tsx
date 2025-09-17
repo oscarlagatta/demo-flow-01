@@ -1,5 +1,4 @@
 "use client"
-import { useEffect, useRef } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useServiceCharts } from "@/domains/payment-health/hooks/hooks"
 import ChartBlock from "@/domains/payment-health/components/charts/chart-block/chart-block"
@@ -9,35 +8,6 @@ import AvailabilitySLOChart from "@/domains/payment-health/components/charts/ava
 export default function ExpandableCharts(props: any) {
   const serviceId = props.data.id
   const { data: chartData, isLoading } = useServiceCharts(serviceId)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!isLoading && containerRef.current && props.onHeightChange) {
-      const observer = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const height = entry.contentRect.height
-          props.onHeightChange(height)
-        }
-      })
-
-      observer.observe(containerRef.current)
-
-      // Fallback height calculation after initial render
-      const timeoutId = setTimeout(() => {
-        if (containerRef.current) {
-          const height = containerRef.current.scrollHeight
-          props.onHeightChange(height)
-        }
-      }, 100)
-
-      return () => {
-        observer.disconnect()
-        clearTimeout(timeoutId)
-      }
-    }
-
-    return undefined
-  }, [isLoading, serviceId, props.onHeightChange])
 
   if (isLoading) {
     return (
@@ -59,7 +29,7 @@ export default function ExpandableCharts(props: any) {
   ]
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div className="w-full">
       <div className="grid gap-4 bg-gray-50 p-4 md:grid-cols-2">
         <AvailabilitySLOChart
           title="Availability vs SLO"

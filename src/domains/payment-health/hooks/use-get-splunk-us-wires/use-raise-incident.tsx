@@ -1,33 +1,27 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation } from "@tanstack/react-query"
 
-import { postApiV2SplunkDataRaiseIncidentMutation } from '@bofa/data-services';
-
+import { postApiV2SplunkDataRaiseIncidentMutation } from "../../mocks/mock-data-services"
 
 export function useIncidents() {
-  const createIncidentMutation = useMutation(
-    postApiV2SplunkDataRaiseIncidentMutation()
-  );
+  const createIncidentMutation = useMutation(postApiV2SplunkDataRaiseIncidentMutation())
 
-  const createIncident = async (data : {
-    subject: string;
-    severity: string;
-    umid: number;
-    description: string;
-  }) {
-  
+  const createIncident = async (data: {
+    subject: string
+    severity: string
+    umid: number
+    description: string
+  }) => {
     try {
-    
       await createIncidentMutation.mutateAsync({
-        body: data
-      });        
+        body: data,
+      })
     } catch (error) {
-    
-      console.error('Failed to add incident', error);
-      throw error;
+      console.error("Failed to add incident", error)
+      throw error
     }
   }
 
   return {
-    createIncident
+    createIncident,
   }
 }

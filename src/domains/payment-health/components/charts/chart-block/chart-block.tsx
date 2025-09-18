@@ -72,8 +72,15 @@ export default function ChartBlock({
 
   const filteredData = data.filter((point) => {
     const value = typeof point.y === "number" ? point.y : Number.parseFloat(point.y.toString())
-    return value < 1000 // Filter out extreme values like 31,000+ seconds
+    return value >= 0 && value < 1000 && !isNaN(value) && isFinite(value)
   })
+
+  const yValues = filteredData.map((point) =>
+    typeof point.y === "number" ? point.y : Number.parseFloat(point.y.toString()),
+  )
+  const maxY = Math.max(...yValues)
+  const minY = Math.min(...yValues)
+  const yAxisDomain = [Math.max(0, minY - (maxY - minY) * 0.1), maxY + (maxY - minY) * 0.1]
 
   return (
     <Card className="flex h-full flex-col">
@@ -125,7 +132,7 @@ export default function ChartBlock({
                 bottom: 20,
               }}
             >
-              <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
               <XAxis
                 dataKey="x"
                 tickLine={false}
@@ -136,37 +143,52 @@ export default function ChartBlock({
                   value: xAxisLabel,
                   position: "insideBottom",
                   offset: -15,
+                  style: { textAnchor: "middle" },
                 }}
               />
               <YAxis
+                domain={yAxisDomain}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }}
+                label={{
+                  value: yAxisLabel,
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle" },
+                }}
                 tickFormatter={(value) => `${value.toFixed(1)}s`}
               />
-              <ChartTooltip cursor={false} content={<CustomTooltip />} />
+              <ChartTooltip cursor={{ strokeDasharray: "3 3" }} content={<CustomTooltip />} />
               {thresholdValue && (
                 <ReferenceLine
                   y={thresholdValue}
                   stroke="var(--color-threshold)"
                   strokeDasharray="5 5"
-                  label={{ value: thresholdLabel, position: "topRight" }}
+                  strokeWidth={2}
+                  label={{
+                    value: thresholdLabel,
+                    position: "topRight",
+                    style: { fontSize: "12px", fontWeight: "bold" },
+                  }}
                 />
               )}
               <Line
                 dataKey="y"
                 type="monotone"
                 stroke="var(--color-duration)"
-                strokeWidth={2.5}
+                strokeWidth={3}
                 dot={false}
                 activeDot={{
-                  r: 6,
+                  r: 8,
                   stroke: "var(--color-duration)",
-                  strokeWidth: 2,
+                  strokeWidth: 3,
                   fill: "var(--background)",
+                  style: { filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))" },
                 }}
                 connectNulls={false}
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </LineChart>
           </ChartContainer>
@@ -174,9 +196,11 @@ export default function ChartBlock({
       </CardContent>
       {data.length !== filteredData.length && (
         <div className="px-6 pb-4">
-          <p className="text-xs text-muted-foreground">
-            Note: {data.length - filteredData.length} extreme outlier value(s) filtered for better visualization
-          </p>
+          <div className="rounded-md bg-muted/50 p-2">
+            <p className="text-xs text-muted-foreground">
+              📊 Note: {data.length - filteredData.length} extreme outlier value(s) filtered for optimal visualization
+            </p>
+          </div>
         </div>
       )}
     </Card>

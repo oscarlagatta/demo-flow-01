@@ -280,15 +280,19 @@ function SecondaryBar({
 
 export function FeaturePaymentHealth() {
   const [selectedMainItem] = useState("e2e-monitor")
-  const [selectedSubItem, setSelectedSubItem] = useState("e2e-monitor-us-wires")
+  const [selectedSubItem, setSelectedSubItem] = useState("us-wires")
   const [secondarySidebarCollapsed, setSecondarySidebarCollapsed] = useState(false)
   const [useWiresMode, setUSWiresMode] = useState<"track-trace" | "observability">("track-trace")
+
+  console.log("[v0] Current useWiresMode:", useWiresMode)
+  console.log("[v0] isMonitorMode will be:", useWiresMode === "observability")
 
   const renderContent = () => {
     switch (selectedSubItem) {
       case "payment-health":
         return <PaymentHealthDashboard />
       case "us-wires":
+        console.log("[v0] Rendering UsWires with isMonitorMode:", useWiresMode === "observability")
         return <UsWires isMonitorMode={useWiresMode === "observability"} />
       default:
         return (

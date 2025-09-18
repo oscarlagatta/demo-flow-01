@@ -39,6 +39,8 @@ import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/cu
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
 
+import type { TimingDataEntry } from "@/domains/payment-health/utils/timing-data-processor"
+
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
 const sectionDurations = {
@@ -167,13 +169,32 @@ const Flow = ({
     enabled: isAuthorized,
   })
 
+  const mockTimingData: TimingDataEntry[] = [
+    {
+      aitNumber: "999",
+      aitName: "CPD_Strategic",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "88.72",
+      averageThruputTime30: "87.83",
+    },
+    {
+      aitNumber: "999",
+      aitName: "CPD_Strategic",
+      healthstatusDateTime: "2025-09-16T10:00:00",
+      averageThruputTime: "92.17",
+      averageThruputTime30: "76.19",
+    },
+    // Add more entries as needed - truncated for brevity
+  ]
+
   const {
     data: processingTimesData,
     isLoading: isLoadingProcessingTimes,
     refetch: refetchProcessingTimes,
   } = useGetAverageProcessingTimes({
     enabled: isAuthorized,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
+    externalTimingData: mockTimingData,
   })
 
   const handleRefetch = async () => {
@@ -356,17 +377,19 @@ const Flow = ({
         isDimmed,
         onClick: handleNodeClick,
         onActionClick: handleActionClick,
-        isMonitorMode: isMonitorMode, // Pass isMonitorMode through data
+        isMonitorMode: isMonitorMode,
       }
 
-      // Add processing time data for background nodes (sections)
       if (node.type === "background" && processingTimesData) {
         const processingTimeInfo = processingTimesData.find((pt) => pt.sectionId === node.id)
         if (processingTimeInfo) {
           nodeData = {
             ...nodeData,
             duration: processingTimeInfo.averageTime,
+            maxDuration: processingTimeInfo.maxTime,
             trend: processingTimeInfo.trend,
+            entryCount: processingTimeInfo.entryCount,
+            aitNumbers: processingTimeInfo.aitNumbers,
           }
         }
       }

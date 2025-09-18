@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { processTimingData, type TimingDataEntry } from "../../utils/timing-data-processor"
 
 export interface SectionProcessingTime {
   sectionId: string
@@ -8,11 +9,15 @@ export interface SectionProcessingTime {
   averageTime: number // in seconds
   trend: "up" | "down" | "stable"
   lastUpdated: Date
+  maxTime?: number
+  entryCount?: number
+  aitNumbers?: string[]
 }
 
 interface UseGetAverageProcessingTimesOptions {
   enabled?: boolean
   refetchInterval?: number
+  externalTimingData?: TimingDataEntry[]
 }
 
 interface UseGetAverageProcessingTimesReturn {
@@ -24,7 +29,6 @@ interface UseGetAverageProcessingTimesReturn {
   refetch: () => Promise<void>
 }
 
-// Mock data for development - will be replaced with actual API call
 const mockProcessingTimes: SectionProcessingTime[] = [
   {
     sectionId: "bg-origination",
@@ -59,7 +63,7 @@ const mockProcessingTimes: SectionProcessingTime[] = [
 export function useGetAverageProcessingTimes(
   options: UseGetAverageProcessingTimesOptions = {},
 ): UseGetAverageProcessingTimesReturn {
-  const { enabled = true, refetchInterval = 30000 } = options // Default 30 second refresh
+  const { enabled = true, refetchInterval = 30000, externalTimingData } = options
 
   const [data, setData] = useState<SectionProcessingTime[] | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -73,24 +77,38 @@ export function useGetAverageProcessingTimes(
     setIsError(false)
 
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      if (externalTimingData && externalTimingData.length > 0) {
+        console.log("[v0] Processing external timing data:", externalTimingData.length, "entries")
 
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await fetch('/api/v2/processing-times/average');
-      // if (!response.ok) throw new Error('Failed to fetch processing times');
-      // const apiData = await response.json();
+        const processedSections = processTimingData(externalTimingData)
+        console.log("[v0] Processed sections:", processedSections)
 
-      // For now, add some random variation to simulate real data
-      const simulatedData = mockProcessingTimes.map((section) => ({
-        ...section,
-        averageTime: section.averageTime + (Math.random() - 0.5) * 0.4, // ±0.2s variation
-        trend: Math.random() > 0.7 ? ((Math.random() > 0.5 ? "up" : "down") as "up" | "down") : ("stable" as const),
-        lastUpdated: new Date(),
-      }))
+        const enhancedData: SectionProcessingTime[] = processedSections.map((section) => ({
+          sectionId: section.sectionId,
+          sectionName: section.sectionName,
+          averageTime: section.averageThruputTime30,
+          maxTime: section.maxThruputTime30,
+          entryCount: section.entryCount,
+          aitNumbers: section.aitNumbers,
+          trend: "stable" as const,
+          lastUpdated: new Date(),
+        }))
 
-      setData(simulatedData)
-      setIsError(false)
+        setData(enhancedData)
+        setIsError(false)
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 800))
+
+        const simulatedData = mockProcessingTimes.map((section) => ({
+          ...section,
+          averageTime: section.averageTime + (Math.random() - 0.5) * 0.4,
+          trend: Math.random() > 0.7 ? ((Math.random() > 0.5 ? "up" : "down") as "up" | "down") : ("stable" as const),
+          lastUpdated: new Date(),
+        }))
+
+        setData(simulatedData)
+        setIsError(false)
+      }
     } catch (error) {
       console.error("Failed to fetch average processing times:", error)
       setIsError(true)
@@ -112,7 +130,6 @@ export function useGetAverageProcessingTimes(
     }
   }, [enabled])
 
-  // Set up automatic refetch interval
   useEffect(() => {
     if (!enabled || !refetchInterval) return
 

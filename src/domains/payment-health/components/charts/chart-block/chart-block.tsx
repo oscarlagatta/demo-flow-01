@@ -71,12 +71,12 @@ export default function ChartBlock({
   }
 
   const filteredData = data.filter((point) => {
-    const value = typeof point.y === "number" ? point.y : Number.parseFloat(point.y.toString())
+    const value = typeof point.y === "number" ? point.y : Number.parseFloat(String(point.y))
     return value >= 0 && value < 1000 && !isNaN(value) && isFinite(value)
   })
 
   const yValues = filteredData.map((point) =>
-    typeof point.y === "number" ? point.y : Number.parseFloat(point.y.toString()),
+    typeof point.y === "number" ? point.y : Number.parseFloat(String(point.y)),
   )
   const maxY = Math.max(...yValues)
   const minY = Math.min(...yValues)
@@ -168,7 +168,7 @@ export default function ChartBlock({
                   strokeWidth={2}
                   label={{
                     value: thresholdLabel,
-                    position: "topRight",
+                    position: "top",
                     style: { fontSize: "12px", fontWeight: "bold" },
                   }}
                 />

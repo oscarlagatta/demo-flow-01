@@ -56,6 +56,9 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
     }
   >()
 
+  console.log("[v0] Processing timing data for sections:", Object.keys(SECTION_NAMES))
+  console.log("[v0] Input timing data entries:", timingData.length)
+
   // Group timing data by section
   timingData.forEach((entry) => {
     const sectionId = AIT_TO_SECTION_MAPPING[entry.aitNumber]
@@ -89,6 +92,10 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
     const averageThruputTime30 = data.times.reduce((sum, time) => sum + time, 0) / data.times.length
     const maxThruputTime30 = Math.max(...data.times)
 
+    console.log(
+      `[v0] Section ${sectionId} (${SECTION_NAMES[sectionId]}): avg=${averageThruputTime30.toFixed(2)}s, max=${maxThruputTime30.toFixed(2)}s, entries=${data.times.length}`,
+    )
+
     processedSections.push({
       sectionId,
       sectionName: SECTION_NAMES[sectionId] || sectionId,
@@ -99,10 +106,17 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
     })
   })
 
-  return processedSections.sort((a, b) => {
+  const sortedSections = processedSections.sort((a, b) => {
     const order = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
     return order.indexOf(a.sectionId) - order.indexOf(b.sectionId)
   })
+
+  console.log(
+    "[v0] Final processed sections:",
+    sortedSections.map((s) => `${s.sectionName}: ${s.averageThruputTime30}s avg, ${s.maxThruputTime30}s max`),
+  )
+
+  return sortedSections
 }
 
 export function formatTimingValue(seconds: number): string {

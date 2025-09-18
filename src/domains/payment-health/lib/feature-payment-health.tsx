@@ -177,7 +177,7 @@ function SecondaryBar({
             <div className="mb-2 text-xs font-medium text-gray-700">View Mode</div>
             <div className="flex items-center rounded-md border bg-white p-0.5 shadow-sm">
               <button
-                onClick={() => onUSWiresModeChange("track-trace")}
+                onClick={() => onUSWiresModeChange("track-trace")} // This sets monitoring to FALSE
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-xs font-medium whitespace-nowrap transition-all ${
                   usWiresMode === "track-trace"
                     ? "bg-blue-600 text-white shadow-sm"
@@ -188,7 +188,7 @@ function SecondaryBar({
                 <span className="truncate">Track</span>
               </button>
               <button
-                onClick={() => onUSWiresModeChange("observability")}
+                onClick={() => onUSWiresModeChange("observability")} // This sets monitoring to TRUE
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-xs font-medium whitespace-nowrap transition-all ${
                   usWiresMode === "observability"
                     ? "bg-blue-600 text-white shadow-sm"

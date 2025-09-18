@@ -33,6 +33,7 @@ type CustomNodeData = {
   isDimmed?: boolean
   onClick?: (nodeId: string) => void
   onActionClick?: (aitNum: string, action: ActionType) => void
+  isMonitorMode?: boolean // Add isMonitorMode prop
 }
 
 type CustomNodeType = Node<CustomNodeData>
@@ -41,6 +42,8 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
   // const { hasRequiredRole } = useAuthzRules();
   const isAuthorized = true // hasRequiredRole();
 
+  const isMonitorMode = data.isMonitorMode || false
+
   // parameter enabled: isAuthorized
   const {
     data: splunkData,
@@ -48,7 +51,7 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
     isError,
     isFetching,
   } = useGetSplunkUsWires({
-    enabled: isAuthorized,
+    enabled: isAuthorized && isMonitorMode,
   })
 
   const { active: txActive, isFetching: txFetching, matchedAitIds, showTable } = useTransactionSearchUsWiresContext()

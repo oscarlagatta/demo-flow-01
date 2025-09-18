@@ -158,6 +158,7 @@ const Flow = ({
   })
   const width = useStore((state) => state.width)
   const isAuthorized = true // hasRequiredRole();
+
   const {
     data: splunkData,
     isLoading,
@@ -166,7 +167,7 @@ const Flow = ({
     isFetching,
     isSuccess,
   } = useGetSplunkUsWires({
-    enabled: isAuthorized,
+    enabled: isAuthorized && isMonitorMode,
   })
 
   const mockTimingData: TimingDataEntry[] = [
@@ -279,7 +280,7 @@ const Flow = ({
     isLoading: isLoadingProcessingTimes,
     refetch: refetchProcessingTimes,
   } = useGetAverageProcessingTimes({
-    enabled: isAuthorized,
+    enabled: isAuthorized && isMonitorMode,
     refetchInterval: 30000,
     externalTimingData: mockTimingData,
   })

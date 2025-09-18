@@ -13,6 +13,11 @@ export interface ProcessedSectionTiming {
   maxThruputTime30: number
   entryCount: number
   aitNumbers: string[]
+  aitTimingData: Array<{
+    aitNumber: string
+    aitName: string
+    averageThruputTime30: number
+  }>
 }
 
 // Mapping of aitNumbers to sections based on the existing flow data
@@ -53,6 +58,7 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
     {
       times: number[]
       aitNumbers: Set<string>
+      aitData: Map<string, { name: string; times: number[] }>
     }
   >()
 
@@ -78,12 +84,21 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
       sectionMap.set(sectionId, {
         times: [],
         aitNumbers: new Set(),
+        aitData: new Map(),
       })
     }
 
     const sectionData = sectionMap.get(sectionId)!
     sectionData.times.push(time30)
     sectionData.aitNumbers.add(entry.aitNumber)
+
+    if (!sectionData.aitData.has(entry.aitNumber)) {
+      sectionData.aitData.set(entry.aitNumber, {
+        name: entry.aitName,
+        times: [],
+      })
+    }
+    sectionData.aitData.get(entry.aitNumber)!.times.push(time30)
   })
 
   // Calculate averages and max values for each section
@@ -92,6 +107,13 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
   sectionMap.forEach((data, sectionId) => {
     const averageThruputTime30 = data.times.reduce((sum, time) => sum + time, 0) / data.times.length
     const maxThruputTime30 = Math.max(...data.times)
+
+    const aitTimingData = Array.from(data.aitData.entries()).map(([aitNumber, aitInfo]) => ({
+      aitNumber,
+      aitName: aitInfo.name,
+      averageThruputTime30:
+        Math.round((aitInfo.times.reduce((sum, time) => sum + time, 0) / aitInfo.times.length) * 100) / 100,
+    }))
 
     console.log(
       `[v0] Section ${sectionId} (${SECTION_NAMES[sectionId]}): avg=${averageThruputTime30.toFixed(2)}s, max=${maxThruputTime30.toFixed(2)}s, entries=${data.times.length}`,
@@ -104,6 +126,7 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
       maxThruputTime30: Math.round(maxThruputTime30 * 100) / 100,
       entryCount: data.times.length,
       aitNumbers: Array.from(data.aitNumbers),
+      aitTimingData,
     })
   })
 

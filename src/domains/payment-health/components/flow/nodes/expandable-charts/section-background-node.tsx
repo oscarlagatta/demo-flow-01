@@ -12,6 +12,11 @@ type SectionBackgroundNodeProps = {
   maxDuration?: number
   entryCount?: number
   aitNumbers?: string[]
+  aitTimingData?: Array<{
+    aitNumber: string
+    aitName: string
+    averageThruputTime30: number
+  }>
 }
 
 type SectionBackgroundNodeType = Node<SectionBackgroundNodeProps>
@@ -47,6 +52,28 @@ const SectionBackgroundNode = ({ data }: NodeProps<SectionBackgroundNodeType>) =
                       : `${Math.floor(data.duration / 60)}m ${(data.duration % 60).toFixed(1)}s`}
                 </div>
                 {data.entryCount && <div className="text-xs text-gray-500">{data.entryCount} data points</div>}
+              </div>
+            )}
+            {data.aitTimingData && data.aitTimingData.length > 0 && (
+              <div className="w-full mt-4 space-y-2">
+                <div className="text-xs font-medium text-gray-600 text-center">Individual AIT Timings:</div>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {data.aitTimingData.map((ait) => (
+                    <div
+                      key={ait.aitNumber}
+                      className="flex justify-between items-center text-xs bg-gray-50 rounded px-2 py-1"
+                    >
+                      <span className="font-medium text-gray-700">AIT {ait.aitNumber}</span>
+                      <span className="text-gray-600">
+                        {ait.averageThruputTime30 < 1
+                          ? `${Math.round(ait.averageThruputTime30 * 1000)}ms`
+                          : ait.averageThruputTime30 < 60
+                            ? `${ait.averageThruputTime30.toFixed(1)}s`
+                            : `${Math.floor(ait.averageThruputTime30 / 60)}m ${(ait.averageThruputTime30 % 60).toFixed(1)}s`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

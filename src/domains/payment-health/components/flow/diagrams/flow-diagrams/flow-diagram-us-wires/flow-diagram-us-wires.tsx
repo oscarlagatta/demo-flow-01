@@ -170,6 +170,7 @@ const Flow = ({
   })
 
   const mockTimingData: TimingDataEntry[] = [
+    // Origination section entries
     {
       aitNumber: "999",
       aitName: "CPD_Strategic",
@@ -184,7 +185,93 @@ const Flow = ({
       averageThruputTime: "92.17",
       averageThruputTime30: "76.19",
     },
-    // Add more entries as needed - truncated for brevity
+    {
+      aitNumber: "11554",
+      aitName: "Swift Gateway",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "45.32",
+      averageThruputTime30: "42.15",
+    },
+    {
+      aitNumber: "48581",
+      aitName: "Loan IQ",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "67.89",
+      averageThruputTime30: "65.44",
+    },
+    // Payment Validation and Routing section entries
+    {
+      aitNumber: "512",
+      aitName: "Swift Alliance",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "125.67",
+      averageThruputTime30: "118.23",
+    },
+    {
+      aitNumber: "70199",
+      aitName: "GPO",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "89.45",
+      averageThruputTime30: "92.11",
+    },
+    {
+      aitNumber: "28960",
+      aitName: "CashPro Payments",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "156.78",
+      averageThruputTime30: "149.33",
+    },
+    {
+      aitNumber: "15227",
+      aitName: "FRP US",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "78.92",
+      averageThruputTime30: "81.67",
+    },
+    // Middleware section entries
+    {
+      aitNumber: "60745",
+      aitName: "RPI",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "234.56",
+      averageThruputTime30: "228.91",
+    },
+    {
+      aitNumber: "4679",
+      aitName: "HRP",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "198.34",
+      averageThruputTime30: "205.77",
+    },
+    // Payment Processing, Sanctions & Investigation section entries
+    {
+      aitNumber: "515",
+      aitName: "GPS Aries",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "345.67",
+      averageThruputTime30: "338.92",
+    },
+    {
+      aitNumber: "62686",
+      aitName: "GTMS (Limits)",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "289.45",
+      averageThruputTime30: "295.11",
+    },
+    {
+      aitNumber: "46951",
+      aitName: "ETS (Sanctions)",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "412.78",
+      averageThruputTime30: "398.33",
+    },
+    {
+      aitNumber: "73929",
+      aitName: "GFD (Fraud)",
+      healthstatusDateTime: "2025-09-16T09:30:00",
+      averageThruputTime: "367.92",
+      averageThruputTime30: "371.67",
+    },
   ]
 
   const {
@@ -390,6 +477,7 @@ const Flow = ({
             trend: processingTimeInfo.trend,
             entryCount: processingTimeInfo.entryCount,
             aitNumbers: processingTimeInfo.aitNumbers,
+            aitTimingData: processingTimeInfo.aitTimingData,
           }
         }
       }

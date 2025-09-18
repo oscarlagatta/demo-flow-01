@@ -158,17 +158,15 @@ export default function ChartBlock({
                 dataKey="y"
                 type="monotone"
                 stroke="var(--color-duration)"
-                strokeWidth={2}
-                dot={{
-                  fill: "var(--color-duration)",
-                  strokeWidth: 2,
-                  r: 3,
-                }}
+                strokeWidth={2.5}
+                dot={false}
                 activeDot={{
-                  r: 5,
+                  r: 6,
                   stroke: "var(--color-duration)",
                   strokeWidth: 2,
+                  fill: "var(--background)",
                 }}
+                connectNulls={false}
               />
             </LineChart>
           </ChartContainer>

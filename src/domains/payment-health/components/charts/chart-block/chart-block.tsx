@@ -1,11 +1,9 @@
 "use client"
-import { useState } from "react"
 import { Info, Loader2 } from "lucide-react"
 import { CartesianGrid, Line, LineChart, XAxis, YAxis, ReferenceLine } from "recharts"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import type { ChartPoint } from "@/domains/payment-health/types/chart-point"
 
@@ -13,7 +11,6 @@ interface ChartBlockProps {
   title: string
   description: string
   data: ChartPoint[]
-  timeRanges: string[]
   yAxisLabel: string
   xAxisLabel: string
   isLoading?: boolean
@@ -49,7 +46,6 @@ export default function ChartBlock({
   title,
   description,
   data,
-  timeRanges,
   yAxisLabel,
   xAxisLabel,
   isLoading = false,
@@ -57,8 +53,6 @@ export default function ChartBlock({
   thresholdValue,
   thresholdLabel,
 }: ChartBlockProps) {
-  const [timeRange, setTimeRange] = useState(timeRanges[0])
-
   const chartConfig = {
     duration: {
       label: "Throughput Time (sec)",
@@ -92,18 +86,6 @@ export default function ChartBlock({
             <CardDescription>{description}</CardDescription>
           </div>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            {timeRanges.map((range) => (
-              <SelectItem key={range} value={range}>
-                {range}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent className="flex flex-1">
         {isLoading ? (

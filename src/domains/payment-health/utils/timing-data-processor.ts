@@ -58,6 +58,7 @@ export function processTimingData(timingData: TimingDataEntry[]): ProcessedSecti
 
   console.log("[v0] Processing timing data for sections:", Object.keys(SECTION_NAMES))
   console.log("[v0] Input timing data entries:", timingData.length)
+  console.log("[v0] Section mappings:", AIT_TO_SECTION_MAPPING)
 
   // Group timing data by section
   timingData.forEach((entry) => {

@@ -1,4 +1,3 @@
-// checked
 "use client"
 
 import type React from "react"
@@ -233,49 +232,53 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
               <>
                 {inDefaultMode && (
                   <>
-                    <LoadingButton
-                      isLoading={isFetching}
-                      loadingText="..."
-                      variant="outline"
-                      className={`h-7 min-w-0 flex-1 px-2 text-[10px] text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
-                        isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        triggerAction("flow")
-                      }}
-                      disabled={trafficStatusColorClass === "bg-gray-400"}
-                    >
-                      Flow
-                    </LoadingButton>
-                    <LoadingButton
-                      isLoading={isFetching}
-                      loadingText="..."
-                      variant="outline"
-                      className={`h-7 min-w-0 flex-1 px-2 text-[10px] text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
-                        isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        triggerAction("trend")
-                      }}
-                      disabled={trendColorClass === "bg-gray-400"}
-                    >
-                      Trend
-                    </LoadingButton>
-                    <LoadingButton
-                      isLoading={isFetching}
-                      loadingText="..."
-                      variant="outline"
-                      className="h-7 min-w-0 flex-1 px-2 text-[10px] font-medium text-white shadow-sm rounded-md border-0 bg-slate-500 hover:bg-slate-600 hover:scale-105 transition-all duration-200"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        triggerAction("balanced")
-                      }}
-                      disabled={trendColorClass === "bg-gray-400"}
-                    >
-                      Balanced
-                    </LoadingButton>
+                    {isMonitorMode && (
+                      <>
+                        <LoadingButton
+                          isLoading={isFetching}
+                          loadingText="..."
+                          variant="outline"
+                          className={`h-7 min-w-0 flex-1 px-2 text-[10px] text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
+                            isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            triggerAction("flow")
+                          }}
+                          disabled={trafficStatusColorClass === "bg-gray-400"}
+                        >
+                          Flow
+                        </LoadingButton>
+                        <LoadingButton
+                          isLoading={isFetching}
+                          loadingText="..."
+                          variant="outline"
+                          className={`h-7 min-w-0 flex-1 px-2 text-[10px] text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
+                            isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            triggerAction("trend")
+                          }}
+                          disabled={trendColorClass === "bg-gray-400"}
+                        >
+                          Trend
+                        </LoadingButton>
+                        <LoadingButton
+                          isLoading={isFetching}
+                          loadingText="..."
+                          variant="outline"
+                          className="h-7 min-w-0 flex-1 px-2 text-[10px] font-medium text-white shadow-sm rounded-md border-0 bg-slate-500 hover:bg-slate-600 hover:scale-105 transition-all duration-200"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            triggerAction("balanced")
+                          }}
+                          disabled={trendColorClass === "bg-gray-400"}
+                        >
+                          Balanced
+                        </LoadingButton>
+                      </>
+                    )}
                   </>
                 )}
 

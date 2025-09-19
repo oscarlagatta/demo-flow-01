@@ -2,17 +2,17 @@
 
 import { Info, Clock, TrendingUp, AlertTriangle, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { useGetAit999Summary } from "../../../hooks/use-get-splunk-us-wires/use-get-ait-999-summary"
+import { useGetAit999TimeSummary } from "../../../hooks/use-get-splunk-us-wires/use-get-ait-999-time-summary"
 
 interface InfoSectionProps {
   time?: number
 }
 
 export function InfoSection({ time = 0 }: InfoSectionProps) {
-  const { data: ait999Data, isLoading, isError } = useGetAit999Summary()
+  const { data: ait999TimeData, isLoading, isError } = useGetAit999TimeSummary()
 
-  const displayTime = ait999Data?.averageProcessingTime ?? time
-  const hasAit999Data = ait999Data !== null && ait999Data.totalEntries > 0
+  const displayTime = ait999TimeData?.summary.averageTime ?? time
+  const hasAit999Data = ait999TimeData !== null && ait999TimeData.summary.totalEntries > 0
 
   const getPerformanceStatus = (totalTime: number) => {
     if (totalTime <= 5) return { status: "excellent", color: "green", icon: TrendingUp }
@@ -104,7 +104,7 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
               <Info className={`h-5 w-5 ${getIconStyles(performance.color)}`} />
               <span className="text-sm font-medium">
                 {hasAit999Data
-                  ? `AIT 999 Average Processing Time for transactions in the US is`
+                  ? `AIT 999 Average Throughput Time (30-day) for transactions in the US is`
                   : `The Total Average Processing Time for transactions in the US is`}
               </span>
             </div>
@@ -120,12 +120,12 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         </div>
 
         <div className="mt-2 text-xs opacity-60">
-          {hasAit999Data && ait999Data ? (
+          {hasAit999Data && ait999TimeData ? (
             <>
-              AIT 999 found in {ait999Data.sectionsAffected.length} section(s): {ait999Data.sectionsAffected.join(", ")}
+              AIT 999 found in {ait999TimeData.entries.length} entries
               <br />
-              Total entries: {ait999Data.totalEntries} | Range: {ait999Data.minProcessingTime}s -{" "}
-              {ait999Data.maxProcessingTime}s
+              Total: {ait999TimeData.summary.totalTime}s | Average: {ait999TimeData.summary.averageTime}s | Range:{" "}
+              {ait999TimeData.summary.minTime}s - {ait999TimeData.summary.maxTime}s
             </>
           ) : (
             "No AIT 999 entries found in current data"

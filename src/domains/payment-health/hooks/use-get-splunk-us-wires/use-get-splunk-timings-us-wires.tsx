@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
+import { getApiV2SplunkDataGetUsWireHealthAppTimingsOptions } from "@bofa/data-serces"
 import { processTimingData, type TimingDataEntry } from "../../utils/timing-data-processor"
-import usWiresTimings from "../../assets/flow-data-us-wires/us-wires-timings.json"
 
 export interface SectionProcessingTime {
   sectionId: string
@@ -28,12 +28,18 @@ interface UseGetSplunkTimingsUsWiresReturn {
 }
 
 export function useGetSplunkTimingsUsWires(): UseGetSplunkTimingsUsWiresReturn {
-  const query = useQuery({
-    queryKey: ["splunk-timings-us-wires"],
-    queryFn: async (): Promise<SectionProcessingTime[]> => {
-      console.log("[v0] Processing timing data from us-wires-timings.json:", usWiresTimings.length, "entries")
+  const splunkData = useQuery(getApiV2SplunkDataGetUsWireHealthAppTimingsOptions())
 
-      const processedSections = processTimingData(usWiresTimings as TimingDataEntry[])
+  const query = useQuery({
+    queryKey: ["splunk-timings-us-wires-processed"],
+    queryFn: async (): Promise<SectionProcessingTime[]> => {
+      if (!splunkData.data) {
+        throw new Error("No timing data available")
+      }
+
+      console.log("[v0] Processing timing data from API:", splunkData.data.length, "entries")
+
+      const processedSections = processTimingData(splunkData.data as TimingDataEntry[])
       console.log("[v0] Processed sections:", processedSections)
 
       const enhancedData: SectionProcessingTime[] = processedSections.map((section) => ({
@@ -50,16 +56,18 @@ export function useGetSplunkTimingsUsWires(): UseGetSplunkTimingsUsWiresReturn {
 
       return enhancedData
     },
+    enabled: !!splunkData.data && splunkData.isSuccess,
     refetchInterval: 30000, // Refetch every 30 seconds
   })
 
   return {
     data: query.data || null,
-    isLoading: query.isLoading,
-    isError: query.isError,
-    isFetching: query.isFetching,
+    isLoading: splunkData.isLoading || query.isLoading,
+    isError: splunkData.isError || query.isError,
+    isFetching: splunkData.isFetching || query.isFetching,
     isSuccess: query.isSuccess,
     refetch: async () => {
+      await splunkData.refetch()
       await query.refetch()
     },
   }

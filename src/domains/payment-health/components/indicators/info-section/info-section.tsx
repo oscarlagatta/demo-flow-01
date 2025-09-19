@@ -11,8 +11,8 @@ interface InfoSectionProps {
 export function InfoSection({ time = 0 }: InfoSectionProps) {
   const { data: ait999TimeData, isLoading, isError } = useGetAit999TimeSummary()
 
-  const displayTime = ait999TimeData?.summary.averageTime ?? time
-  const hasAit999Data = ait999TimeData !== null && ait999TimeData.summary.totalEntries > 0
+  const displayTime = ait999TimeData?.averageThruputTime30 ?? time
+  const hasAit999Data = ait999TimeData !== null && ait999TimeData?.totalEntries > 0
 
   const getPerformanceStatus = (totalTime: number) => {
     if (totalTime <= 5) return { status: "excellent", color: "green", icon: TrendingUp }
@@ -122,10 +122,11 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         <div className="mt-2 text-xs opacity-60">
           {hasAit999Data && ait999TimeData ? (
             <>
-              AIT 999 found in {ait999TimeData.entries.length} entries
+              AIT 999 found in {ait999TimeData.totalEntries} entries
               <br />
-              Total: {ait999TimeData.summary.totalTime}s | Average: {ait999TimeData.summary.averageTime}s | Range:{" "}
-              {ait999TimeData.summary.minTime}s - {ait999TimeData.summary.maxTime}s
+              Total: {ait999TimeData.totalThruputTime30.toFixed(1)}s | Average:{" "}
+              {ait999TimeData.averageThruputTime30.toFixed(1)}s | Range: {ait999TimeData.minThruputTime30.toFixed(1)}s -{" "}
+              {ait999TimeData.maxThruputTime30.toFixed(1)}s
             </>
           ) : (
             "No AIT 999 entries found in current data"

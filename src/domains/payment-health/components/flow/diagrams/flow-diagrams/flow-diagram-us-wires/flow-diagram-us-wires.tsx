@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { initialEdges, initialNodes } from "@/domains/payment-health/assets/flow-data-us-wires/flow-data-use-wires"
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
-import { useGetAverageProcessingTimes } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-average-processing-times"
+import { useGetSplunkTimingsUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-timings-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
 import { computeTrafficStatusColors } from "@/domains/payment-health/utils/traffic-status-utils"
 import PaymentSearchBoxUsWires from "@/domains/payment-health/components/search/payment-search-box-us-wires/payment-search-box-us-wires"
@@ -38,8 +38,6 @@ import { TransactionDetailsTableAgGrid } from "@/domains/payment-health/componen
 import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
-
-import type { TimingDataEntry } from "@/domains/payment-health/utils/timing-data-processor"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -170,120 +168,11 @@ const Flow = ({
     enabled: isAuthorized && isMonitorMode,
   })
 
-  const mockTimingData: TimingDataEntry[] = [
-    // Origination section entries
-    {
-      aitNumber: "999",
-      aitName: "CPD_Strategic",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "88.72",
-      averageThruputTime30: "87.83",
-    },
-    {
-      aitNumber: "999",
-      aitName: "CPD_Strategic",
-      healthstatusDateTime: "2025-09-16T10:00:00",
-      averageThruputTime: "92.17",
-      averageThruputTime30: "76.19",
-    },
-    {
-      aitNumber: "11554",
-      aitName: "Swift Gateway",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "45.32",
-      averageThruputTime30: "42.15",
-    },
-    {
-      aitNumber: "48581",
-      aitName: "Loan IQ",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "67.89",
-      averageThruputTime30: "65.44",
-    },
-    // Payment Validation and Routing section entries
-    {
-      aitNumber: "512",
-      aitName: "Swift Alliance",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "125.67",
-      averageThruputTime30: "118.23",
-    },
-    {
-      aitNumber: "70199",
-      aitName: "GPO",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "89.45",
-      averageThruputTime30: "92.11",
-    },
-    {
-      aitNumber: "28960",
-      aitName: "CashPro Payments",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "156.78",
-      averageThruputTime30: "149.33",
-    },
-    {
-      aitNumber: "15227",
-      aitName: "FRP US",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "78.92",
-      averageThruputTime30: "81.67",
-    },
-    // Middleware section entries
-    {
-      aitNumber: "60745",
-      aitName: "RPI",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "234.56",
-      averageThruputTime30: "228.91",
-    },
-    {
-      aitNumber: "4679",
-      aitName: "HRP",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "198.34",
-      averageThruputTime30: "205.77",
-    },
-    // Payment Processing, Sanctions & Investigation section entries
-    {
-      aitNumber: "515",
-      aitName: "GPS Aries",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "345.67",
-      averageThruputTime30: "338.92",
-    },
-    {
-      aitNumber: "62686",
-      aitName: "GTMS (Limits)",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "289.45",
-      averageThruputTime30: "295.11",
-    },
-    {
-      aitNumber: "46951",
-      aitName: "ETS (Sanctions)",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "412.78",
-      averageThruputTime30: "398.33",
-    },
-    {
-      aitNumber: "73929",
-      aitName: "GFD (Fraud)",
-      healthstatusDateTime: "2025-09-16T09:30:00",
-      averageThruputTime: "367.92",
-      averageThruputTime30: "371.67",
-    },
-  ]
-
   const {
     data: processingTimesData,
     isLoading: isLoadingProcessingTimes,
     refetch: refetchProcessingTimes,
-  } = useGetAverageProcessingTimes({
-    enabled: isAuthorized && isMonitorMode,
-    refetchInterval: 30000,
-    externalTimingData: mockTimingData,
-  })
+  } = useGetSplunkTimingsUsWires()
 
   const handleRefetch = async () => {
     try {

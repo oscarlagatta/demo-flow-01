@@ -1,3 +1,5 @@
+import usWiresData from "../assets/flow-data-us-wires/us-wires-data.json"
+
 export interface TimingDataEntry {
   aitNumber: string
   aitName: string
@@ -20,30 +22,33 @@ export interface ProcessedSectionTiming {
   }>
 }
 
-// Mapping of aitNumbers to sections based on the existing flow data
-const AIT_TO_SECTION_MAPPING: Record<string, string> = {
-  "11554": "bg-origination", // Swift Gateway
-  "48581": "bg-origination", // Loan IQ
-  "41107": "bg-origination", // CashPro Mobile
-  "11697": "bg-origination", // CPO API Gateway
-  "54071": "bg-origination", // B2Bi
-  "512": "bg-validation", // Swift Alliance
-  "70199": "bg-validation", // GPO
-  "28960": "bg-validation", // CashPro Payments
-  "15227": "bg-validation", // FRP US
-  "31427": "bg-validation", // PSR
-  "834": "bg-validation", // ECS
-  "60745": "bg-middleware", // RPI
-  "4679": "bg-middleware", // HRP
-  "515": "bg-processing", // GPS Aries
-  "62686": "bg-processing", // GTMS (Limits)
-  "46951": "bg-processing", // ETS (Sanctions)
-  "73929": "bg-processing", // GFD (Fraud)
-  "1901": "bg-processing", // WTX
-  "882": "bg-processing", // RGBW
-  "74014": "bg-processing", // RTPFP
-  "999": "bg-origination", // CPD_Strategic - mapping to origination for now
+function createAitToSectionMapping(): Record<string, string> {
+  const mapping: Record<string, string> = {}
+
+  // Map class names to section IDs
+  const classToSectionId: Record<string, string> = {
+    origination: "bg-origination",
+    "payment validation and routing": "bg-validation",
+    middleware: "bg-middleware",
+    "payment processing, sanctions and investigation": "bg-processing",
+  }
+
+  // Process nodes from us-wires-data.json
+  usWiresData.nodes.forEach((node) => {
+    if (node.class && node.id && !node.type) {
+      // Only process AIT nodes (not background nodes)
+      const sectionId = classToSectionId[node.class.toLowerCase()]
+      if (sectionId) {
+        mapping[node.id] = sectionId
+      }
+    }
+  })
+
+  console.log("[v0] Dynamic AIT_TO_SECTION_MAPPING created:", mapping)
+  return mapping
 }
+
+const AIT_TO_SECTION_MAPPING = createAitToSectionMapping()
 
 const SECTION_NAMES: Record<string, string> = {
   "bg-origination": "Origination",

@@ -9,7 +9,6 @@
     "start": "next start"
   },
   "dependencies": {
-    "@bofa/data-serces": "latest",
     "@eslint/eslintrc": "latest",
     "@hey-api/client-axios": "latest",
     "@hey-api/openapi-ts": "latest",

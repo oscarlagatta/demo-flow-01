@@ -1,0 +1,34 @@
+[
+  {
+    "reportName": null,
+    "aitNumber": "999",
+    "aitName": "CPO_Strategic",
+    "healthstatusDateTime": "2025-09-18T00:00:00Z",
+    "averageThruputTime": "18030.61",
+    "averageThruputTime30": "18022.00"
+  },
+  {
+    "reportName": null,
+    "aitNumber": "882",
+    "aitName": "RGW",
+    "healthstatusDateTime": "2025-09-18T00:00:00Z",
+    "averageThruputTime": "17924.60",
+    "averageThruputTime30": "17924.60"
+  },
+  {
+    "reportName": null,
+    "aitNumber": "70199",
+    "aitName": "GPO",
+    "healthstatusDateTime": "2025-09-18T00:00:00Z",
+    "averageThruputTime": "30.40",
+    "averageThruputTime30": "40.13"
+  },
+  {
+    "reportName": null,
+    "aitNumber": "54071",
+    "aitName": "B2B1",
+    "healthstatusDateTime": "2025-09-18T00:00:00Z",
+    "averageThruputTime": "14.18",
+    "averageThruputTime30": "14.10"
+  }
+]

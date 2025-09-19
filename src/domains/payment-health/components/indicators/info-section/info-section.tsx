@@ -2,19 +2,17 @@
 
 import { Info, Clock, TrendingUp, AlertTriangle, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { useGetSplunkTimingsUsWires } from "../../../hooks/use-get-splunk-us-wires/use-get-splunk-timings-us-wires"
-import { calculateAit999Summary } from "../../../utils/ait-999-summary"
+import { useGetAit999Summary } from "../../../hooks/use-get-splunk-us-wires/use-get-ait-999-summary"
 
 interface InfoSectionProps {
   time?: number
 }
 
 export function InfoSection({ time = 0 }: InfoSectionProps) {
-  const { data: timingData, isLoading, isError } = useGetSplunkTimingsUsWires()
-  const ait999Summary = timingData ? calculateAit999Summary(timingData) : null
+  const { data: ait999Data, isLoading, isError } = useGetAit999Summary()
 
-  const displayTime = ait999Summary?.averageProcessingTime ?? time
-  const hasAit999Data = ait999Summary !== null
+  const displayTime = ait999Data?.averageProcessingTime ?? time
+  const hasAit999Data = ait999Data !== null && ait999Data.totalEntries > 0
 
   const getPerformanceStatus = (totalTime: number) => {
     if (totalTime <= 5) return { status: "excellent", color: "green", icon: TrendingUp }
@@ -77,7 +75,7 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         <CardContent className="p-4">
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-            <span className="text-sm font-medium">Loading timing data...</span>
+            <span className="text-sm font-medium">Loading AIT 999 data...</span>
           </div>
         </CardContent>
       </Card>
@@ -90,7 +88,7 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         <CardContent className="p-4">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            <span className="text-sm font-medium">Unable to load timing data</span>
+            <span className="text-sm font-medium">Unable to load AIT 999 data</span>
           </div>
         </CardContent>
       </Card>
@@ -122,15 +120,15 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         </div>
 
         <div className="mt-2 text-xs opacity-60">
-          {hasAit999Data && ait999Summary ? (
+          {hasAit999Data && ait999Data ? (
             <>
-              AIT 999 found in {ait999Summary.sectionsAffected.length} section(s):{" "}
-              {ait999Summary.sectionsAffected.join(", ")}
+              AIT 999 found in {ait999Data.sectionsAffected.length} section(s): {ait999Data.sectionsAffected.join(", ")}
               <br />
-              Total entries: {ait999Summary.totalEntries} | Max time: {ait999Summary.maxProcessingTime}s
+              Total entries: {ait999Data.totalEntries} | Range: {ait999Data.minProcessingTime}s -{" "}
+              {ait999Data.maxProcessingTime}s
             </>
           ) : (
-            "View individual section timing in the flow diagram headers above"
+            "No AIT 999 entries found in current data"
           )}
         </div>
       </CardContent>

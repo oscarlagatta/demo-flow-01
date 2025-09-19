@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
+import { useGetAit999TimeSummary } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-ait-999-time-summary"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
 import {
   computeTrafficStatusColors,
@@ -17,10 +18,10 @@ import { computeTrendColors, getTrendColorClass, type TrendColor } from "../../.
 import { LoadingButton } from "../../../loading/loading-button"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 
-import { MoreVertical } from "lucide-react"
+import { MoreVertical, Clock } from "lucide-react"
 
 import { IncidentSheet } from "../../../sheets/incident-sheet"
-import { Button } from "@/components/ui/button" // NEW
+import { Button } from "@/components/ui/button"
 
 type ActionType = "flow" | "trend" | "balanced"
 
@@ -53,6 +54,8 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
     enabled: isAuthorized && isMonitorMode,
   })
 
+  const { data: timingData, isLoading: isTimingLoading, isError: isTimingError } = useGetAit999TimeSummary()
+
   const { active: txActive, isFetching: txFetching, matchedAitIds, showTable } = useTransactionSearchUsWiresContext()
 
   // Extract AIT number from the node data subtext (format: "AIT {number}")
@@ -60,6 +63,18 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
     const match = data.subtext.match(/AIT (\d+)/)
     return match ? match[1] : null
   }, [data.subtext])
+
+  const nodeTimingInfo = useMemo(() => {
+    if (!timingData || !aitNum || aitNum !== "999") return null
+
+    const nodeEntry = timingData.entries.find((entry) => entry.aitNumber === aitNum)
+    return nodeEntry
+      ? {
+          averageTime: nodeEntry.averageThruputTime30,
+          formattedTime: `${nodeEntry.averageThruputTime30.toFixed(1)}ms`,
+        }
+      : null
+  }, [timingData, aitNum])
 
   // Compute trend colors from Splunk data
   const trendColorMapping = useMemo(() => {
@@ -163,7 +178,7 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
   return (
     <>
       <Card
-        className={`${getCardClassName()} h-[100px]`} // fixed height
+        className={`${getCardClassName()} h-[120px]`} // Increased height to accommodate timing info
         onClick={handleClick}
         data-testid={`custom-node-${id}`}
       >
@@ -191,6 +206,18 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
         <CardHeader className="p-2">
           <CardTitle className="text-center text-xs font-bold whitespace-nowrap">{data.title}</CardTitle>
           <p className="text-muted-foreground text-center text-[10px]">{data.subtext}</p>
+          {nodeTimingInfo && !isTimingLoading && !isTimingError && (
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <Clock className="h-3 w-3 text-blue-600" />
+              <span className="text-[9px] font-medium text-blue-600">{nodeTimingInfo.formattedTime}</span>
+            </div>
+          )}
+          {isTimingLoading && aitNum === "999" && (
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <Clock className="h-3 w-3 text-gray-400 animate-pulse" />
+              <span className="text-[9px] text-gray-400">Loading...</span>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-2 pt-0">
           <div className="flex gap-1 transition-all duration-200">

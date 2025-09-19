@@ -12,6 +12,11 @@ export interface SectionProcessingTime {
   maxTime?: number
   entryCount?: number
   aitNumbers?: string[]
+  aitTimingData?: Array<{
+    aitNumber: string
+    aitName: string
+    averageThruputTime30: number
+  }>
 }
 
 interface UseGetAverageProcessingTimesOptions {
@@ -90,6 +95,7 @@ export function useGetAverageProcessingTimes(
           maxTime: section.maxThruputTime30,
           entryCount: section.entryCount,
           aitNumbers: section.aitNumbers,
+          aitTimingData: section.aitTimingData,
           trend: "stable" as const,
           lastUpdated: new Date(),
         }))

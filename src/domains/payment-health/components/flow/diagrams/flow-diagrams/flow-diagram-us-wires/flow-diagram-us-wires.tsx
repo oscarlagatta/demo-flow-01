@@ -452,13 +452,36 @@ const Flow = ({
       ),
     [setEdges],
   )
+
+  type BaseNodeData = {
+    isSelected: boolean
+    isConnected: boolean
+    isDimmed: boolean | "" | null
+    onClick: (nodeId: string) => void
+    onActionClick: (aitNum: string, action: ActionType) => void
+    isMonitorMode: boolean
+  }
+
+  type ExtendedNodeData = BaseNodeData & {
+    duration?: number
+    maxDuration?: number
+    trend?: "up" | "down" | "stable"
+    entryCount?: number
+    aitNumbers?: string[]
+    aitTimingData?: Array<{
+      aitNumber: string
+      aitName: string
+      averageThruputTime30: number
+    }>
+  }
+
   const nodesForFlow = useMemo(() => {
     return nodes.map((node) => {
       const isSelected = selectedNodeId === node.id
       const isConnected = connectedNodeIds.has(node.id)
       const isDimmed = selectedNodeId && !isSelected && !isConnected
 
-      let nodeData = {
+      let nodeData: ExtendedNodeData = {
         ...node.data,
         isSelected,
         isConnected,

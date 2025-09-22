@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getApiV2SplunkDataGetUsWireHealthAppTimingsOptions } from "@bofa/data-serces"
+import { getApiV2SplunkDataGetUsWireHealthAppTimingsOptions } from "../../mocks/mock-data-services"
 import { processTimingData, type TimingDataEntry } from "../../utils/timing-data-processor"
 
 export interface SectionProcessingTime {
@@ -27,7 +27,7 @@ interface UseGetSplunkTimingsUsWiresReturn {
   refetch: () => Promise<void>
 }
 
-export function useGetSplunkTimingsUsWires(): UseGetSplunkTimingsUsWiresReturn {
+export function useGetSplunkTimingsUsWires(options?: { enabled?: boolean }): UseGetSplunkTimingsUsWiresReturn {
   const splunkData = useQuery(getApiV2SplunkDataGetUsWireHealthAppTimingsOptions())
 
   const query = useQuery({
@@ -56,7 +56,7 @@ export function useGetSplunkTimingsUsWires(): UseGetSplunkTimingsUsWiresReturn {
 
       return enhancedData
     },
-    enabled: !!splunkData.data && splunkData.isSuccess,
+    enabled: !!splunkData.data && splunkData.isSuccess && options?.enabled !== false,
     refetchInterval: 30000, // Refetch every 30 seconds
   })
 

@@ -172,7 +172,9 @@ const Flow = ({
     data: processingTimesData,
     isLoading: isLoadingProcessingTimes,
     refetch: refetchProcessingTimes,
-  } = useGetSplunkTimingsUsWires()
+  } = useGetSplunkTimingsUsWires({
+    enabled: isAuthorized && isMonitorMode,
+  })
 
   const handleRefetch = async () => {
     try {
@@ -365,6 +367,13 @@ const Flow = ({
   }
 
   const nodesForFlow = useMemo(() => {
+    console.log(
+      "[v0] Building nodes for flow - isMonitorMode:",
+      isMonitorMode,
+      "processingTimesData:",
+      !!processingTimesData,
+    )
+
     return nodes.map((node) => {
       const isSelected = selectedNodeId === node.id
       const isConnected = connectedNodeIds.has(node.id)
@@ -382,6 +391,8 @@ const Flow = ({
 
       if (node.type === "background" && processingTimesData) {
         const processingTimeInfo = processingTimesData.find((pt) => pt.sectionId === node.id)
+        console.log("[v0] Background node", node.id, "processingTimeInfo:", processingTimeInfo)
+
         if (processingTimeInfo) {
           nodeData = {
             ...nodeData,
@@ -392,6 +403,7 @@ const Flow = ({
             aitNumbers: processingTimeInfo.aitNumbers,
             aitTimingData: processingTimeInfo.aitTimingData,
           }
+          console.log("[v0] Enhanced node data for", node.id, "with duration:", processingTimeInfo.averageTime)
         }
       }
 

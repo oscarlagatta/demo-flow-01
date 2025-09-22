@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getApiV2SplunkDataGetUsWireHealthAppTimingsOptions } from "@bofa/data-serces"
+import { getApiV2SplunkDataGetUsWireHealthAppTimingsOptions } from "../../mocks/mock-data-services"
 import type { TimingDataEntry } from "../../utils/timing-data-processor"
 
 export interface Ait999TimeSummary {

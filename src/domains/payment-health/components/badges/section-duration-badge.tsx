@@ -16,6 +16,8 @@ interface SectionDurationBadgeProps {
     label: string
     currentThruputTime30: number
     averageThruputTime30: number
+    healthStatus?: string
+    transactionCount?: number
   }>
 }
 
@@ -68,7 +70,14 @@ export default function SectionDurationBadge({
     if (nodeTimingData && nodeTimingData.length > 0) {
       const nodeDetails = nodeTimingData
         .filter((node) => node.averageThruputTime30 > 0)
-        .map((node) => `${node.label}: ${formatDuration(node.averageThruputTime30)}`)
+        .map((node) => {
+          const currentTime = node.currentThruputTime30
+            ? ` (Current: ${formatDuration(node.currentThruputTime30)})`
+            : ""
+          const healthStatus = node.healthStatus ? ` [${node.healthStatus}]` : ""
+          const transactionCount = node.transactionCount ? ` - ${node.transactionCount} txns` : ""
+          return `${node.label}: ${formatDuration(node.averageThruputTime30)}${currentTime}${healthStatus}${transactionCount}`
+        })
         .join("\n")
 
       if (nodeDetails) {

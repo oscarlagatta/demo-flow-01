@@ -11,7 +11,16 @@ interface InfoSectionProps {
 export function InfoSection({ time = 0 }: InfoSectionProps) {
   const { data: backendFlowData, isLoading, isError } = useGetBackendFlowData()
 
-  const displayTime = backendFlowData?.averageThruputTime30 ?? time
+  const calculateOverallAverage = () => {
+    if (!backendFlowData?.processingSections || backendFlowData.processingSections.length === 0) {
+      return time
+    }
+
+    const totalTime = backendFlowData.processingSections.reduce((sum, section) => sum + section.averageTime, 0)
+    return totalTime / backendFlowData.processingSections.length
+  }
+
+  const displayTime = calculateOverallAverage()
   const hasBackendData = backendFlowData !== null && backendFlowData?.nodes.length > 0
 
   const getPerformanceStatus = (totalTime: number) => {
@@ -112,7 +121,7 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
               className={`flex items-center space-x-2 rounded-full border px-3 py-1 ${getBadgeStyles(performance.color)}`}
             >
               <StatusIcon className="h-4 w-4" />
-              <span className="text-lg font-bold">{displayTime} seconds</span>
+              <span className="text-lg font-bold">{displayTime.toFixed(1)} seconds</span>
             </div>
           </div>
 
@@ -122,10 +131,15 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         <div className="mt-2 text-xs opacity-60">
           {hasBackendData && backendFlowData ? (
             <>
-              Data from {backendFlowData.nodes.length} system nodes
+              Data from {backendFlowData.nodes.length} system nodes across {backendFlowData.processingSections.length}{" "}
+              processing sections
               <br />
-              Processing sections: {backendFlowData.processingSections.length} | System connections:{" "}
-              {backendFlowData.systemConnections.length}
+              Section averages:{" "}
+              {backendFlowData.processingSections
+                .map((section) => `${section.sectionName}: ${section.averageTime.toFixed(1)}s`)
+                .join(", ")}
+              <br />
+              System connections: {backendFlowData.systemConnections.length}
             </>
           ) : (
             "No backend flow data available"

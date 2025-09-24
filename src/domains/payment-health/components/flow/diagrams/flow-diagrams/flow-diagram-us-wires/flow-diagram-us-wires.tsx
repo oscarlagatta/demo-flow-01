@@ -38,6 +38,8 @@ import { TransactionDetailsTableAgGrid } from "@/domains/payment-health/componen
 import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
+import { useGetBackendFlowData } from "@/domains/payment-health/hooks/use-get-backend-flow-data/use-get-backend-flow-data"
+import { generateFlowData } from "@/domains/payment-health/assets/flow-data-us-wires/flow-data-use-wires"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -137,8 +139,42 @@ const Flow = ({
 }) => {
   // const { hasRequiredRole } = useAuthzRules();
   const { showTableView } = useTransactionSearchUsWiresContext()
-  const [nodes, setNodes] = useState<Node[]>(initialNodes)
-  const [edges, setEdges] = useState<Edge[]>(initialEdges)
+
+  const isAuthorized = true // hasRequiredRole();
+
+  const {
+    data: backendFlowData,
+    isLoading: isLoadingBackendData,
+    isError: isBackendError,
+    refetch: refetchBackendData,
+    isFetching: isFetchingBackendData,
+  } = useGetBackendFlowData({
+    enabled: isAuthorized && isMonitorMode,
+  })
+
+  const flowData = useMemo(() => {
+    if (!backendFlowData) {
+      return {
+        nodes: initialNodes,
+        edges: initialEdges,
+        processingSections: [],
+        systemConnections: [],
+      }
+    }
+    return generateFlowData(backendFlowData)
+  }, [backendFlowData])
+
+  const [nodes, setNodes] = useState<Node[]>(flowData.nodes)
+  const [edges, setEdges] = useState<Edge[]>(flowData.edges)
+
+  useEffect(() => {
+    if (backendFlowData) {
+      const newFlowData = generateFlowData(backendFlowData)
+      setNodes(newFlowData.nodes)
+      setEdges(newFlowData.edges)
+    }
+  }, [backendFlowData])
+
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [connectedNodeIds, setConnectedNodeIds] = useState<Set<string>>(new Set())
   const [connectedEdgeIds, setConnectedEdgeIds] = useState<Set<string>>(new Set())
@@ -155,7 +191,6 @@ const Flow = ({
     action: null,
   })
   const width = useStore((state) => state.width)
-  const isAuthorized = true // hasRequiredRole();
 
   const {
     data: splunkData,
@@ -178,7 +213,7 @@ const Flow = ({
 
   const handleRefetch = async () => {
     try {
-      await Promise.all([refetch(), refetchProcessingTimes()])
+      await Promise.all([refetch(), refetchProcessingTimes(), refetchBackendData()])
       setLastRefetch(new Date())
       toast.success("Data successfully refreshed!", {
         description: "The latest data has been loaded",
@@ -364,6 +399,10 @@ const Flow = ({
       aitName: string
       averageThruputTime30: number
     }>
+    averageDuration?: number
+    healthStatus?: string
+    transactionCount?: number
+    currentThruputTime30?: number
   }
 
   const nodesForFlow = useMemo(() => {
@@ -372,6 +411,8 @@ const Flow = ({
       isMonitorMode,
       "processingTimesData:",
       !!processingTimesData,
+      "backendFlowData:",
+      !!backendFlowData,
     )
 
     return nodes.map((node) => {
@@ -389,8 +430,8 @@ const Flow = ({
         isMonitorMode: isMonitorMode,
       }
 
-      if (node.type === "background" && processingTimesData) {
-        const processingTimeInfo = processingTimesData.find((pt) => pt.sectionId === node.id)
+      if (node.type === "background" && flowData.processingSections) {
+        const processingTimeInfo = flowData.processingSections.find((pt) => pt.sectionId === node.id)
         console.log("[v0] Background node", node.id, "processingTimeInfo:", processingTimeInfo)
 
         if (processingTimeInfo) {
@@ -407,6 +448,19 @@ const Flow = ({
         }
       }
 
+      if (node.type === "custom" && backendFlowData?.nodes) {
+        const backendNode = backendFlowData.nodes.find((bn) => bn.id === node.id)
+        if (backendNode) {
+          nodeData = {
+            ...nodeData,
+            currentThruputTime30: backendNode.currentThruputTime30,
+            averageThruputTime30: backendNode.averageThruputTime30,
+            healthStatus: backendNode.healthStatus,
+            transactionCount: backendNode.transactionCount,
+          }
+        }
+      }
+
       if (node.parentId) {
         const { parentId, ...rest } = node
         return {
@@ -420,10 +474,38 @@ const Flow = ({
         data: nodeData,
       }
     })
-  }, [nodes, selectedNodeId, connectedNodeIds, handleNodeClick, handleActionClick, processingTimesData, isMonitorMode])
+  }, [
+    nodes,
+    selectedNodeId,
+    connectedNodeIds,
+    handleNodeClick,
+    handleActionClick,
+    processingTimesData,
+    isMonitorMode,
+    flowData.processingSections,
+    backendFlowData,
+  ])
 
   const edgesForFlow = useMemo(() => {
-    return edges.map((edge) => {
+    let edgesToRender = edges
+
+    // If we have system connections from backend, use those to create edges
+    if (flowData.systemConnections && flowData.systemConnections.length > 0) {
+      const dynamicEdges = flowData.systemConnections
+        .filter((conn) => conn.isActive)
+        .map((conn) => ({
+          id: `${conn.source}-${conn.target}`,
+          source: conn.source,
+          target: conn.target,
+          type: "smoothstep",
+          markerEnd: { type: MarkerType.ArrowClosed, color: "#6b7280" },
+          style: { strokeWidth: 2, stroke: "#6b7280" },
+        }))
+
+      edgesToRender = [...edges, ...dynamicEdges]
+    }
+
+    return edgesToRender.map((edge) => {
       const isConnected = connectedEdgeIds.has(edge.id)
       const isDimmed = selectedNodeId && !isConnected
       return {
@@ -437,9 +519,10 @@ const Flow = ({
         animated: isConnected,
       }
     })
-  }, [edges, connectedEdgeIds, selectedNodeId])
+  }, [edges, flowData.systemConnections, connectedEdgeIds, selectedNodeId])
+
   const renderDataPanel = () => {
-    if (isLoading || isLoadingProcessingTimes) {
+    if (isLoading || isLoadingProcessingTimes || isLoadingBackendData) {
       return (
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
@@ -455,7 +538,8 @@ const Flow = ({
         </div>
       )
     }
-    if (isError) {
+
+    if (isError || isBackendError) {
       return (
         <div className="space-y-3">
           <div className="flex items-center space-x-2 text-red-600">
@@ -466,10 +550,10 @@ const Flow = ({
             onClick={handleRefetch}
             size="sm"
             variant="outline"
-            disabled={isFetching}
+            disabled={isFetching || isFetchingBackendData}
             className="w-full border-red-200 bg-transparent hover:border-red-300 hover:bg-red-50"
           >
-            {isFetching ? (
+            {isFetching || isFetchingBackendData ? (
               <>
                 <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                 Retrying...
@@ -484,25 +568,27 @@ const Flow = ({
         </div>
       )
     }
-    if (isSuccess && splunkData && processingTimesData) {
+
+    if (isSuccess && splunkData && processingTimesData && backendFlowData) {
       return (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h4 className="mb-1 text-xs font-medium">Traffic Status Summary:</h4>
             <div className="flex items-center gap-1">
-              {isFetching && <Loader2 className="h-3 w-3 animate-spin text-blue-500" />}
+              {(isFetching || isFetchingBackendData) && <Loader2 className="h-3 w-3 animate-spin text-blue-500" />}
               <Button
                 onClick={handleRefetch}
                 size="sm"
                 variant="ghost"
-                disabled={isFetching}
+                disabled={isFetching || isFetchingBackendData}
                 className="h-5 w-5 p-0 hover:bg-blue-50"
                 title="Refresh data"
               >
-                <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3 w-3 ${isFetching || isFetchingBackendData ? "animate-spin" : ""}`} />
               </Button>
             </div>
           </div>
+
           <div className="rounded bg-gray-50 p-2 text-xs">
             {Object.entries(computeTrafficStatusColors(splunkData)).map(([aitNum, color]) => (
               <div key={aitNum} className="flex justify-between">
@@ -527,11 +613,25 @@ const Flow = ({
               {JSON.stringify(processingTimesData, null, 2)}
             </pre>
           </div>
+          <div>
+            <h4 className="mb-1 text-xs font-medium">Backend Flow Data:</h4>
+            <pre className="max-h-32 overflow-auto rounded bg-gray-50 p-2 text-xs">
+              {JSON.stringify(
+                {
+                  nodes: backendFlowData.nodes.slice(0, 2),
+                  processingSections: backendFlowData.processingSections.slice(0, 2),
+                },
+                null,
+                2,
+              )}
+            </pre>
+          </div>
         </div>
       )
     }
     return null
   }
+
   if (showTableView) {
     return <TransactionDetailsTableAgGrid />
   }
@@ -560,14 +660,14 @@ const Flow = ({
             )}
             <Button
               onClick={handleRefetch}
-              disabled={isFetching}
+              disabled={isFetching || isFetchingBackendData}
               variant="outline"
               size="sm"
               className="h-8 w-8 border-blue-200 bg-white p-0 shadow-sm hover:border-blue-300 hover:bg-blue-50"
               title="Refresh data"
               aria-label="Refresh data"
             >
-              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-4 w-4 ${isFetching || isFetchingBackendData ? "animate-spin" : ""}`} />
             </Button>
           </div>
           <ReactFlow

@@ -2,17 +2,17 @@
 
 import { Info, Clock, TrendingUp, AlertTriangle, Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { useGetAit999TimeSummary } from "../../../hooks/use-get-splunk-us-wires/use-get-ait-999-time-summary"
+import { useGetBackendFlowData } from "../../../hooks/use-get-backend-flow-data/use-get-backend-flow-data"
 
 interface InfoSectionProps {
   time?: number
 }
 
 export function InfoSection({ time = 0 }: InfoSectionProps) {
-  const { data: ait999TimeData, isLoading, isError } = useGetAit999TimeSummary()
+  const { data: backendFlowData, isLoading, isError } = useGetBackendFlowData()
 
-  const displayTime = ait999TimeData?.averageThruputTime30 ?? time
-  const hasAit999Data = ait999TimeData !== null && ait999TimeData?.totalEntries > 0
+  const displayTime = backendFlowData?.averageThruputTime30 ?? time
+  const hasBackendData = backendFlowData !== null && backendFlowData?.nodes.length > 0
 
   const getPerformanceStatus = (totalTime: number) => {
     if (totalTime <= 5) return { status: "excellent", color: "green", icon: TrendingUp }
@@ -75,7 +75,7 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         <CardContent className="p-4">
           <div className="flex items-center justify-center space-x-2">
             <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-            <span className="text-sm font-medium">Loading AIT 999 data...</span>
+            <span className="text-sm font-medium">Loading flow data...</span>
           </div>
         </CardContent>
       </Card>
@@ -88,7 +88,7 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         <CardContent className="p-4">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            <span className="text-sm font-medium">Unable to load AIT 999 data</span>
+            <span className="text-sm font-medium">Unable to load flow data</span>
           </div>
         </CardContent>
       </Card>
@@ -103,8 +103,8 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
             <div className="flex items-center space-x-2">
               <Info className={`h-5 w-5 ${getIconStyles(performance.color)}`} />
               <span className="text-sm font-medium">
-                {hasAit999Data
-                  ? `AIT 999 Average Throughput Time (30-day) for transactions in the US is`
+                {hasBackendData
+                  ? `Average Throughput Time (30-day) for US Wire transactions is`
                   : `The Total Average Processing Time for transactions in the US is`}
               </span>
             </div>
@@ -120,16 +120,15 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
         </div>
 
         <div className="mt-2 text-xs opacity-60">
-          {hasAit999Data && ait999TimeData ? (
+          {hasBackendData && backendFlowData ? (
             <>
-              AIT 999 found in {ait999TimeData.totalEntries} entries
+              Data from {backendFlowData.nodes.length} system nodes
               <br />
-              Total: {ait999TimeData.totalThruputTime30.toFixed(1)}s | Average:{" "}
-              {ait999TimeData.averageThruputTime30.toFixed(1)}s | Range: {ait999TimeData.minThruputTime30.toFixed(1)}s -{" "}
-              {ait999TimeData.maxThruputTime30.toFixed(1)}s
+              Processing sections: {backendFlowData.processingSections.length} | System connections:{" "}
+              {backendFlowData.systemConnections.length}
             </>
           ) : (
-            "No AIT 999 entries found in current data"
+            "No backend flow data available"
           )}
         </div>
       </CardContent>

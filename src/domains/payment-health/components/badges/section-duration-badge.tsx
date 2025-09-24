@@ -11,6 +11,12 @@ interface SectionDurationBadgeProps {
   maxDuration?: number
   entryCount?: number
   showDetails?: boolean
+  nodeTimingData?: Array<{
+    id: string
+    label: string
+    currentThruputTime30: number
+    averageThruputTime30: number
+  }>
 }
 
 export default function SectionDurationBadge({
@@ -21,6 +27,7 @@ export default function SectionDurationBadge({
   maxDuration,
   entryCount,
   showDetails = false,
+  nodeTimingData,
 }: SectionDurationBadgeProps) {
   const formatDuration = (seconds: number) => {
     if (seconds < 1) {
@@ -52,6 +59,26 @@ export default function SectionDurationBadge({
     }
   }
 
+  const getTooltipContent = () => {
+    let content =
+      showDetails && maxDuration
+        ? `Avg: ${formatDuration(duration)} | Max: ${formatDuration(maxDuration)}${entryCount ? ` | ${entryCount} entries` : ""}`
+        : `Average: ${formatDuration(duration)}`
+
+    if (nodeTimingData && nodeTimingData.length > 0) {
+      const nodeDetails = nodeTimingData
+        .filter((node) => node.averageThruputTime30 > 0)
+        .map((node) => `${node.label}: ${formatDuration(node.averageThruputTime30)}`)
+        .join("\n")
+
+      if (nodeDetails) {
+        content += "\n\nNode Details:\n" + nodeDetails
+      }
+    }
+
+    return content
+  }
+
   return (
     <div
       className={cn(
@@ -60,11 +87,7 @@ export default function SectionDurationBadge({
         getDurationColor(maxDuration || duration),
         className,
       )}
-      title={
-        showDetails && maxDuration
-          ? `Avg: ${formatDuration(duration)} | Max: ${formatDuration(maxDuration)}${entryCount ? ` | ${entryCount} entries` : ""}`
-          : `Average: ${formatDuration(duration)}`
-      }
+      title={getTooltipContent()}
     >
       <Clock className="h-3.5 w-3.5" />
       <span className="font-mono">

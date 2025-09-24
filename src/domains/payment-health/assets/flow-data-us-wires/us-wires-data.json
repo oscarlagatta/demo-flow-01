@@ -1,356 +1,1378 @@
 {
+  "averageThruputTime30": 63.68,
   "nodes": [
     {
       "id": "11554",
-      "data": { "label": "Swift Gateway" },
-      "class": "origination"
-    },
-    {
-      "id": "48581",
-      "data": { "label": "Loan IQ" },
-      "class": "origination"
+      "label": "SAG",
+      "category": "Origination",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "",
+      "splunkDatas": [],
+      "step": 1
     },
     {
       "id": "41107",
-      "data": { "label": "CashPro Mobile" },
-      "class": "origination"
+      "label": "CPMobile",
+      "category": "Origination",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "41107",
+          "aiT_NAME": "CPMOBILE",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": "28950",
+          "floW_AIT_NAME": "CPO Pay",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Trend (-24.99%)",
+          "averagE_TRANSACTION_COUNT": "13.33",
+          "currenT_TRANSACTION_COUNT": "10",
+          "historic_STD": "4.01",
+          "historic_MEAN": "6.56",
+          "currenT_STD_VARIATION": "0.86"
+        }
+      ],
+      "step": 1
     },
     {
-      "id": "11697",
-      "data": { "label": "CPO API Gateway" },
-      "class": "origination"
+      "id": "48581",
+      "label": "Loan IQ",
+      "category": "Origination",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "48581",
+          "aiT_NAME": "Loan IQ",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": "8979",
+          "floW_AIT_NAME": "",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "No Historical Traffic",
+          "averagE_TRANSACTION_COUNT": "0",
+          "currenT_TRANSACTION_COUNT": "0",
+          "historic_STD": "437.27",
+          "historic_MEAN": "349.44",
+          "currenT_STD_VARIATION": "-0.80"
+        },
+        {
+          "aiT_NUM": "48581",
+          "aiT_NAME": "LIQ",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "21901",
+          "floW_AIT_NAME": "LIQ to GBS (via MRP) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-28.93%)",
+          "averagE_TRANSACTION_COUNT": "121",
+          "currenT_TRANSACTION_COUNT": "86",
+          "historic_STD": "11.36",
+          "historic_MEAN": "107.55",
+          "currenT_STD_VARIATION": "-1.88"
+        },
+        {
+          "aiT_NUM": "48581",
+          "aiT_NAME": "LIQ",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "21901",
+          "floW_AIT_NAME": "LIQ to MTX (via MRP) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-14.43%)",
+          "averagE_TRANSACTION_COUNT": "959.5",
+          "currenT_TRANSACTION_COUNT": "821",
+          "historic_STD": "218.95",
+          "historic_MEAN": "806.95",
+          "currenT_STD_VARIATION": "0.99"
+        }
+      ],
+      "step": 1
     },
     {
       "id": "54071",
-      "data": { "label": "B2Bi" },
-      "class": "origination"
+      "label": "DTS_B2B1",
+      "category": "Origination",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 18.57,
+      "averageThruputTime30": 18.48,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "54071",
+          "aiT_NAME": "DTS_B2B1",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": "28960",
+          "floW_AIT_NAME": "CPO Pay",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (10.81%)",
+          "averagE_TRANSACTION_COUNT": "6496.00",
+          "currenT_TRANSACTION_COUNT": "7198",
+          "historic_STD": "1989.72",
+          "historic_MEAN": "2355.27",
+          "currenT_STD_VARIATION": "-2.43"
+        },
+        {
+          "aiT_NUM": "54071",
+          "aiT_NAME": "DTS_B2B1",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": "834",
+          "floW_AIT_NAME": "ECS",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (7.76%)",
+          "averagE_TRANSACTION_COUNT": "11641.50",
+          "currenT_TRANSACTION_COUNT": "12545",
+          "historic_STD": "3535.21",
+          "historic_MEAN": "4821.26",
+          "currenT_STD_VARIATION": "-2.18"
+        }
+      ],
+      "step": 1
+    },
+    {
+      "id": "71800",
+      "label": "APIGW",
+      "category": "Origination",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "71800",
+          "aiT_NAME": "APIGW",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": "28960",
+          "floW_AIT_NAME": "CPO Pay",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-11.42%)",
+          "averagE_TRANSACTION_COUNT": "951.67",
+          "currenT_TRANSACTION_COUNT": "843",
+          "historic_STD": "344.87",
+          "historic_MEAN": "385.81",
+          "currenT_STD_VARIATION": "-1.33"
+        }
+      ],
+      "step": 1
     },
     {
       "id": "512",
-      "data": { "label": "Swift Alliance" },
-      "class": "payment validation and routing"
-    },
-    {
-      "id": "70199",
-      "data": { "label": "GPO" },
-      "class": "payment validation and routing"
-    },
-    {
-      "id": "28960",
-      "data": { "label": "CashPro Payments" },
-      "class": "payment validation and routing"
-    },
-    {
-      "id": "15227",
-      "data": { "label": "FRP US" },
-      "class": "payment validation and routing"
-    },
-    {
-      "id": "31427",
-      "data": { "label": "PSR" },
-      "class": "payment validation and routing"
+      "label": "SCP",
+      "category": "Payment Validation and Routing",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "512",
+          "aiT_NAME": "SCP",
+          "floW_DIRECTION": "Received",
+          "floW_AIT_NUM": "0",
+          "floW_AIT_NAME": "SCP Clearing House",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-34.96%)",
+          "averagE_TRANSACTION_COUNT": "3550.67",
+          "currenT_TRANSACTION_COUNT": "2580",
+          "historic_STD": "735.65",
+          "historic_MEAN": "3947.33",
+          "currenT_STD_VARIATION": "-1.54"
+        },
+        {
+          "aiT_NUM": "512",
+          "aiT_NAME": "SCP",
+          "floW_DIRECTION": "Received",
+          "floW_AIT_NUM": "0",
+          "floW_AIT_NAME": "SCP Clearing House",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-25.29%)",
+          "averagE_TRANSACTION_COUNT": "3029.33",
+          "currenT_TRANSACTION_COUNT": "2264",
+          "historic_STD": "567.53",
+          "historic_MEAN": "3030.67",
+          "currenT_STD_VARIATION": "-1.35"
+        },
+        {
+          "aiT_NUM": "512",
+          "aiT_NAME": "SCP",
+          "floW_DIRECTION": "Received",
+          "floW_AIT_NUM": "0",
+          "floW_AIT_NAME": "SCP Clearing House",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-22.55%)",
+          "averagE_TRANSACTION_COUNT": "3698.33",
+          "currenT_TRANSACTION_COUNT": "2863",
+          "historic_STD": "601.29",
+          "historic_MEAN": "3693.33",
+          "currenT_STD_VARIATION": "-1.38"
+        }
+      ],
+      "step": 1
     },
     {
       "id": "834",
-      "data": { "label": "ECS" },
-      "class": "payment validation and routing"
+      "label": "ECS",
+      "category": "Payment Validation and Routing",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "834",
+          "aiT_NAME": "ECS",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "ECS TO WTX (via MRP) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (~4.13%)",
+          "averagE_TRANSACTION_COUNT": "20130.25",
+          "currenT_TRANSACTION_COUNT": "19298",
+          "historic_STD": "2810.00",
+          "historic_MEAN": "15697.26",
+          "currenT_STD_VARIATION": "1.28"
+        }
+      ],
+      "step": 2
     },
     {
-      "id": "60745",
-      "data": { "label": "RPI" },
-      "class": "middleware"
+      "id": "15227",
+      "label": "FRP US",
+      "category": "Payment Validation and Routing",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 31.03,
+      "averageThruputTime30": 30.03,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "15227",
+          "aiT_NAME": "File Request Processor US",
+          "floW_DIRECTION": "Outbound",
+          "floW_AIT_NUM": "834",
+          "floW_AIT_NAME": "ECS(Complete)",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (46.85%)",
+          "averagE_TRANSACTION_COUNT": "317.33",
+          "currenT_TRANSACTION_COUNT": "466",
+          "historic_STD": "1971.46",
+          "historic_MEAN": "2419.37",
+          "currenT_STD_VARIATION": "-0.99"
+        },
+        {
+          "aiT_NUM": "15227",
+          "aiT_NAME": "File Request Processor US",
+          "floW_DIRECTION": "Outbound",
+          "floW_AIT_NUM": "834",
+          "floW_AIT_NAME": "ECS(Incomplete)",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-37.14%)",
+          "averagE_TRANSACTION_COUNT": "17.50",
+          "currenT_TRANSACTION_COUNT": "11",
+          "historic_STD": "6.95",
+          "historic_MEAN": "8.53",
+          "currenT_STD_VARIATION": "0.36"
+        }
+      ],
+      "step": 2
+    },
+    {
+      "id": "28960",
+      "label": "CPO-PAY",
+      "category": "Payment Validation and Routing",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0.78,
+      "averageThruputTime30": 0.83,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "71800",
+          "floW_AIT_NAME": "API_GATEWAY",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-13.08%)",
+          "averagE_TRANSACTION_COUNT": "956.00",
+          "currenT_TRANSACTION_COUNT": "831",
+          "historic_STD": "344.81",
+          "historic_MEAN": "377.91",
+          "currenT_STD_VARIATION": "1.33"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "54071",
+          "floW_AIT_NAME": "B2B1",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (10.18%)",
+          "averagE_TRANSACTION_COUNT": "6322.50",
+          "currenT_TRANSACTION_COUNT": "6966",
+          "historic_STD": "1939.09",
+          "historic_MEAN": "2292.05",
+          "currenT_STD_VARIATION": "2.41"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "41107",
+          "floW_AIT_NAME": "CP_Mobile",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (+16.67%)",
+          "averagE_TRANSACTION_COUNT": "32.00",
+          "currenT_TRANSACTION_COUNT": "40",
+          "historic_STD": "2.33",
+          "historic_MEAN": "6.45",
+          "currenT_STD_VARIATION": "0.91"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "15227",
+          "floW_AIT_NAME": "FRP",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": null,
+          "averagE_TRANSACTION_COUNT": "0",
+          "currenT_TRANSACTION_COUNT": "0",
+          "historic_STD": "59922.55",
+          "historic_MEAN": "323129.09",
+          "currenT_STD_VARIATION": "-7.24"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "73292",
+          "floW_AIT_NAME": "6FD",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (40.33%)",
+          "averagE_TRANSACTION_COUNT": "28645.50",
+          "currenT_TRANSACTION_COUNT": "40197",
+          "historic_STD": "3533.64",
+          "historic_MEAN": "14565.14",
+          "currenT_STD_VARIATION": "5.26"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "70199",
+          "floW_AIT_NAME": "GPO",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-16.02%)",
+          "averagE_TRANSACTION_COUNT": "26457.50",
+          "currenT_TRANSACTION_COUNT": "22219",
+          "historic_STD": "3649.90",
+          "historic_MEAN": "14265.01",
+          "currenT_STD_VARIATION": "-4.70"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "70199",
+          "floW_AIT_NAME": "GPO_FILE",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": null,
+          "averagE_TRANSACTION_COUNT": "0",
+          "currenT_TRANSACTION_COUNT": "0",
+          "historic_STD": "24.36",
+          "historic_MEAN": "288.88",
+          "currenT_STD_VARIATION": "-11.86"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CashPro Payments",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "31427",
+          "floW_AIT_NAME": "PSH",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-5.04%)",
+          "averagE_TRANSACTION_COUNT": "6264.00",
+          "currenT_TRANSACTION_COUNT": "5958",
+          "historic_STD": "1720.35",
+          "historic_MEAN": "1508.23",
+          "currenT_STD_VARIATION": "2.53"
+        },
+        {
+          "aiT_NUM": "28960",
+          "aiT_NAME": "CPS",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "E2E_USWires_70199_GlobalPaymentOrchestrator_CPS-WTX-viaGPO",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-1.69%)",
+          "averagE_TRANSACTION_COUNT": "11577.25",
+          "currenT_TRANSACTION_COUNT": "11382",
+          "historic_STD": "2231.83",
+          "historic_MEAN": "7877.21",
+          "currenT_STD_VARIATION": "1.57"
+        }
+      ],
+      "step": 2
+    },
+    {
+      "id": "31427",
+      "label": "PSH",
+      "category": "Payment Validation and Routing",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "Payments Services Hub",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "4679",
+          "floW_AIT_NAME": "MRP(COMPLETE)",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (62.36%)",
+          "averagE_TRANSACTION_COUNT": "16995.75",
+          "currenT_TRANSACTION_COUNT": "27594",
+          "historic_STD": "3325.86",
+          "historic_MEAN": "5663.96",
+          "currenT_STD_VARIATION": "6.59"
+        },
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "Payments Services Hub",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "4679",
+          "floW_AIT_NAME": "MRP(PP_WAIT)",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (948.13%)",
+          "averagE_TRANSACTION_COUNT": "462.25",
+          "currenT_TRANSACTION_COUNT": "4845",
+          "historic_STD": "3325.86",
+          "historic_MEAN": "5663.96",
+          "currenT_STD_VARIATION": "0.25"
+        },
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "Payments Services Hub",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "4679",
+          "floW_AIT_NAME": "MRP(REPAIR)",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (169.70%)",
+          "averagE_TRANSACTION_COUNT": "109.75",
+          "currenT_TRANSACTION_COUNT": "296",
+          "historic_STD": "3325.86",
+          "historic_MEAN": "5663.96",
+          "currenT_STD_VARIATION": "0.61"
+        },
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "Payments Services Hub",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "4679",
+          "floW_AIT_NAME": "MRP(WAIT_EXT_CHK)",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-20.00%)",
+          "averagE_TRANSACTION_COUNT": "5.00",
+          "currenT_TRANSACTION_COUNT": "4",
+          "historic_STD": "3325.86",
+          "historic_MEAN": "5663.96",
+          "currenT_STD_VARIATION": "-1.70"
+        },
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "Payments Services Hub",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "4679",
+          "floW_AIT_NAME": "MRP(WAIT_CONFIRMATION)",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (137.96%)",
+          "averagE_TRANSACTION_COUNT": "5200.50",
+          "currenT_TRANSACTION_COUNT": "12375",
+          "historic_STD": "3325.86",
+          "historic_MEAN": "5663.96",
+          "currenT_STD_VARIATION": "2.02"
+        },
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "PSH",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "515",
+          "floW_AIT_NAME": "PSH TO GBS (via MRP) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (16.28%)",
+          "averagE_TRANSACTION_COUNT": "6252",
+          "currenT_TRANSACTION_COUNT": "7270",
+          "historic_STD": "454.26",
+          "historic_MEAN": "5542.37",
+          "currenT_STD_VARIATION": "3.80"
+        },
+        {
+          "aiT_NUM": "31427",
+          "aiT_NAME": "PSH",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "PSH TO WTX (via MRP) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (1.42%)",
+          "averagE_TRANSACTION_COUNT": "8109.25",
+          "currenT_TRANSACTION_COUNT": "8224",
+          "historic_STD": "1285.39",
+          "historic_MEAN": "5868.17",
+          "currenT_STD_VARIATION": "1.83"
+        }
+      ],
+      "step": 2
+    },
+    {
+      "id": "70199",
+      "label": "GPO",
+      "category": "Payment Validation and Routing",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 2.18,
+      "averageThruputTime30": 2.32,
+      "systemHealth": "Unknown",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "70199",
+          "aiT_NAME": "Global Payments Orchestrator",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "WTX(Payout Initiated)",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": null,
+          "averagE_TRANSACTION_COUNT": null,
+          "currenT_TRANSACTION_COUNT": null,
+          "historic_STD": null,
+          "historic_MEAN": null,
+          "currenT_STD_VARIATION": null
+        },
+        {
+          "aiT_NUM": "70199",
+          "aiT_NAME": "Global Payments Orchestrator",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "WTX(Payment Confirmed)",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": null,
+          "averagE_TRANSACTION_COUNT": null,
+          "currenT_TRANSACTION_COUNT": null,
+          "historic_STD": null,
+          "historic_MEAN": null,
+          "currenT_STD_VARIATION": null
+        },
+        {
+          "aiT_NUM": "70199",
+          "aiT_NAME": "Global Payments Orchestrator",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "WTX(Payment Failed)",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": null,
+          "averagE_TRANSACTION_COUNT": null,
+          "currenT_TRANSACTION_COUNT": null,
+          "historic_STD": null,
+          "historic_MEAN": null,
+          "currenT_STD_VARIATION": null
+        }
+      ],
+      "step": 2
     },
     {
       "id": "4679",
-      "data": { "label": "HRP" },
-      "class": "middleware"
+      "label": "mRP",
+      "category": "Middleware",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "4679",
+          "aiT_NAME": "mRP",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "ECS to WTX via mRP",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-4.13%)",
+          "averagE_TRANSACTION_COUNT": "20130.25",
+          "currenT_TRANSACTION_COUNT": "19298",
+          "historic_STD": "5694.62",
+          "historic_MEAN": "7268.67",
+          "currenT_STD_VARIATION": "2.11"
+        },
+        {
+          "aiT_NUM": "4679",
+          "aiT_NAME": "mRP",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "LIQ to GBS via mRP",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-28.93%)",
+          "averagE_TRANSACTION_COUNT": "121",
+          "currenT_TRANSACTION_COUNT": "86",
+          "historic_STD": "33.97",
+          "historic_MEAN": "56.20",
+          "currenT_STD_VARIATION": "0.88"
+        },
+        {
+          "aiT_NUM": "4679",
+          "aiT_NAME": "mRP",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "LIQ to WTX via mRP",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-14.43%)",
+          "averagE_TRANSACTION_COUNT": "959.5",
+          "currenT_TRANSACTION_COUNT": "821",
+          "historic_STD": "286.54",
+          "historic_MEAN": "216.08",
+          "currenT_STD_VARIATION": "2.10"
+        },
+        {
+          "aiT_NUM": "4679",
+          "aiT_NAME": "mRP",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "PSH to GBS via mRP",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (16.28%)",
+          "averagE_TRANSACTION_COUNT": "6252",
+          "currenT_TRANSACTION_COUNT": "7270",
+          "historic_STD": "1877.82",
+          "historic_MEAN": "3120.04",
+          "currenT_STD_VARIATION": "2.21"
+        },
+        {
+          "aiT_NUM": "4679",
+          "aiT_NAME": "mRP",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "PSH to WTX via mRP",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (1.42%)",
+          "averagE_TRANSACTION_COUNT": "8109.25",
+          "currenT_TRANSACTION_COUNT": "8224",
+          "historic_STD": "2234.86",
+          "historic_MEAN": "2632.72",
+          "currenT_STD_VARIATION": "2.50"
+        }
+      ],
+      "step": 3
+    },
+    {
+      "id": "60745",
+      "label": "RPI",
+      "category": "Middleware",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "60745",
+          "aiT_NAME": "RPI",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "WTX to ECS via RPI",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-15.39%)",
+          "averagE_TRANSACTION_COUNT": "197993.83333333334",
+          "currenT_TRANSACTION_COUNT": "167517",
+          "historic_STD": "52764.84",
+          "historic_MEAN": "132922.00",
+          "currenT_STD_VARIATION": "0.66"
+        },
+        {
+          "aiT_NUM": "60745",
+          "aiT_NAME": "RPI",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "WTX to GFD via RPI",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (2.10%)",
+          "averagE_TRANSACTION_COUNT": "693432",
+          "currenT_TRANSACTION_COUNT": "708564",
+          "historic_STD": "163761.05",
+          "historic_MEAN": "319667.59",
+          "currenT_STD_VARIATION": "2.37"
+        },
+        {
+          "aiT_NUM": "60745",
+          "aiT_NAME": "RPI",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": "WTX to GTHS via RPI",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-5.65%)",
+          "averagE_TRANSACTION_COUNT": "100165.75",
+          "currenT_TRANSACTION_COUNT": "94510",
+          "historic_STD": "20764.34",
+          "historic_MEAN": "67282.77",
+          "currenT_STD_VARIATION": "1.31"
+        }
+      ],
+      "step": 3
     },
     {
       "id": "515",
-      "data": { "label": "GPS Aries" },
-      "class": "payment processing, sanctions and investigation"
-    },
-    {
-      "id": "62686",
-      "data": { "label": "GTMS (Limits)" },
-      "class": "payment processing, sanctions and investigation"
-    },
-    {
-      "id": "46951",
-      "data": { "label": "ETS (Sanctions)" },
-      "class": "payment processing, sanctions and investigation"
-    },
-    {
-      "id": "73929",
-      "data": { "label": "GFD (Fraud)" },
-      "class": "payment processing, sanctions and investigation"
+      "label": "GBSAPS",
+      "category": "Payment Processing, Sanctions & Investigation",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "515",
+          "aiT_NAME": "GBS",
+          "floW_DIRECTION": null,
+          "floW_AIT_NUM": null,
+          "floW_AIT_NAME": null,
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (5.35%)",
+          "averagE_TRANSACTION_COUNT": "110180.25",
+          "currenT_TRANSACTION_COUNT": "116076",
+          "historic_STD": "1351.75",
+          "historic_MEAN": "108655.97",
+          "currenT_STD_VARIATION": "5.49"
+        },
+        {
+          "aiT_NUM": "515",
+          "aiT_NAME": "GBS",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "1901",
+          "floW_AIT_NAME": "E2E_USWires_70199_GlobalPaymentOrchestrator_GBS-WTXorRTPF-via-GPO",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (8.97%)",
+          "averagE_TRANSACTION_COUNT": "1093",
+          "currenT_TRANSACTION_COUNT": "1191",
+          "historic_STD": "13.70",
+          "historic_MEAN": "1073.69",
+          "currenT_STD_VARIATION": "8.56"
+        }
+      ],
+      "step": 4
     },
     {
       "id": "1901",
-      "data": { "label": "WTX" },
-      "class": "payment processing, sanctions and investigation"
+      "label": "WTX",
+      "category": "Payment Processing, Sanctions & Investigation",
+      "isTrafficFlowing": false,
+      "currentThruputTime30": 0,
+      "averageThruputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "46581",
+          "floW_AIT_NAME": "ETS",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-6.03%)",
+          "averagE_TRANSACTION_COUNT": "374150.00",
+          "currenT_TRANSACTION_COUNT": "351594",
+          "historic_STD": "104411.72",
+          "historic_MEAN": "169888.37",
+          "currenT_STD_VARIATION": "-1.74"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "73292",
+          "floW_AIT_NAME": "GFD",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (2.94%)",
+          "averagE_TRANSACTION_COUNT": "57915.00",
+          "currenT_TRANSACTION_COUNT": "59616",
+          "historic_STD": "15739.34",
+          "historic_MEAN": "21269.14",
+          "currenT_STD_VARIATION": "2.44"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "62686",
+          "floW_AIT_NAME": "GTMS",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-5.97%)",
+          "averagE_TRANSACTION_COUNT": "44661.00",
+          "currenT_TRANSACTION_COUNT": "41932",
+          "historic_STD": "2249.26",
+          "historic_MEAN": "22626.20",
+          "currenT_STD_VARIATION": "-3.62"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "AllSources",
+          "floW_AIT_NAME": "COMPLETE",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-13.06%)",
+          "averagE_TRANSACTION_COUNT": "37807.88",
+          "currenT_TRANSACTION_COUNT": "32961",
+          "historic_STD": "11946.94",
+          "historic_MEAN": "15365.31",
+          "currenT_STD_VARIATION": "1.47"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "INBOUND FROM",
+          "floW_AIT_NUM": "AllSources",
+          "floW_AIT_NAME": "INCOMPLETE",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-39.56%)",
+          "averagE_TRANSACTION_COUNT": "1240.88",
+          "currenT_TRANSACTION_COUNT": "750",
+          "historic_STD": "323.36",
+          "historic_MEAN": "865.36",
+          "currenT_STD_VARIATION": "-0.36"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "AllSources",
+          "floW_AIT_NAME": "COMPLETE",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-92.52%)",
+          "averagE_TRANSACTION_COUNT": "3945.60",
+          "currenT_TRANSACTION_COUNT": "295",
+          "historic_STD": "1114.37",
+          "historic_MEAN": "4578.83",
+          "currenT_STD_VARIATION": "-1.15"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "AllSources",
+          "floW_AIT_NAME": "INCOMPLETE",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-99.63%)",
+          "averagE_TRANSACTION_COUNT": "167.51",
+          "currenT_TRANSACTION_COUNT": "2",
+          "historic_STD": "58.84",
+          "historic_MEAN": "146.69",
+          "currenT_STD_VARIATION": "-2.46"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "46581",
+          "floW_AIT_NAME": "ETS",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-6.42%)",
+          "averagE_TRANSACTION_COUNT": "360708.00",
+          "currenT_TRANSACTION_COUNT": "337553",
+          "historic_STD": "100549.62",
+          "historic_MEAN": "165116.53",
+          "currenT_STD_VARIATION": "-1.71"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "73292",
+          "floW_AIT_NAME": "GFD",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (2.05%)",
+          "averagE_TRANSACTION_COUNT": "58977.50",
+          "currenT_TRANSACTION_COUNT": "60689",
+          "historic_STD": "15995.81",
+          "historic_MEAN": "21780.06",
+          "currenT_STD_VARIATION": "2.43"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "Wire Transfer System",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "62686",
+          "floW_AIT_NAME": "GTMS",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-6.42%)",
+          "averagE_TRANSACTION_COUNT": "43189.50",
+          "currenT_TRANSACTION_COUNT": "40497",
+          "historic_STD": "11146.43",
+          "historic_MEAN": "24556.96",
+          "currenT_STD_VARIATION": "-1.49"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "WTX",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "834",
+          "floW_AIT_NAME": "WTX to ETS (via RPI) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-15.39%)",
+          "averagE_TRANSACTION_COUNT": "197993.83333333334",
+          "currenT_TRANSACTION_COUNT": "167517",
+          "historic_STD": "29215.25",
+          "historic_MEAN": "206962.23",
+          "currenT_STD_VARIATION": "-1.35"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "WTX",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "515",
+          "floW_AIT_NAME": "E2E_USWires_515_GBS_WTX_To_GBS_Outbound_Wires",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "Approaching-Trend (-13.50%)",
+          "averagE_TRANSACTION_COUNT": "507.5",
+          "currenT_TRANSACTION_COUNT": "439",
+          "historic_STD": "19.98",
+          "historic_MEAN": "483.72",
+          "currenT_STD_VARIATION": "-2.24"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "WTX",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "515",
+          "floW_AIT_NAME": "E2E_USWires_70199_GlobalPaymentOrchestrator_WTXorRTPF-GBS-via-GPO",
+          "iS_TRAFFIC_FLOWING": "No",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-2.21%)",
+          "averagE_TRANSACTION_COUNT": "214.75",
+          "currenT_TRANSACTION_COUNT": "210",
+          "historic_STD": "8.22",
+          "historic_MEAN": "204.04",
+          "currenT_STD_VARIATION": "0.73"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "WTX",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "73292",
+          "floW_AIT_NAME": "WTX to GFD (via RPI) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (2.10%)",
+          "averagE_TRANSACTION_COUNT": "693432",
+          "currenT_TRANSACTION_COUNT": "708564",
+          "historic_STD": "83826.66",
+          "historic_MEAN": "555882.38",
+          "currenT_STD_VARIATION": "1.82"
+        },
+        {
+          "aiT_NUM": "1901",
+          "aiT_NAME": "WTX",
+          "floW_DIRECTION": "OUTBOUND TO",
+          "floW_AIT_NUM": "54071",
+          "floW_AIT_NAME": "WTX to GTMS (via MRP) - All US Wire Messages",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "On-Trend (-5.65%)",
+          "averagE_TRANSACTION_COUNT": "100165.75",
+          "currenT_TRANSACTION_COUNT": "94510",
+          "historic_STD": "4691.80",
+          "historic_MEAN": "93320.32",
+          "currenT_STD_VARIATION": "0.25"
+        }
+      ],
+      "step": 4
     },
     {
-      "id": "882",
-      "data": { "label": "RGBW" },
-      "class": "payment processing, sanctions and investigation"
+      "id": "43929",
+      "label": "GFD",
+      "category": "Payment Processing, Sanctions & Investigation",
+      "isTrafficFlowing": false,
+      "currentThroughputTime": 0,
+      "averageThroughputTime30": 0,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "28960",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_CPC_PAYMENT_INFO",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (115.81%)",
+          "average_TRANSACTION_COUNT": "168535.50",
+          "current_TRANSACTION_COUNT": "363722",
+          "historic_STD": "62202.35",
+          "historic_MEAN": "143756.45",
+          "current_STD_VARIATION": "3.54"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "28960",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_Cpc_File_Info",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (66.67%)",
+          "average_TRANSACTION_COUNT": "30.00",
+          "current_TRANSACTION_COUNT": "50",
+          "historic_STD": "6.89",
+          "historic_MEAN": "18.79",
+          "current_STD_VARIATION": "4.53"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "15177",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_GblBlk_File_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": null,
+          "average_TRANSACTION_COUNT": "0",
+          "current_TRANSACTION_COUNT": "0",
+          "historic_STD": null,
+          "historic_MEAN": null,
+          "current_STD_VARIATION": null
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "15177",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_GblBlk_Payment_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": null,
+          "average_TRANSACTION_COUNT": "0",
+          "current_TRANSACTION_COUNT": "0",
+          "historic_STD": "110.61",
+          "historic_MEAN": "221.52",
+          "current_STD_VARIATION": "-2.00"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "834",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_PSD2_PAIN_PAYMENT_INFO",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (622.65%)",
+          "average_TRANSACTION_COUNT": "16456.00",
+          "current_TRANSACTION_COUNT": "118919",
+          "historic_STD": "14201.21",
+          "historic_MEAN": "18855.52",
+          "current_STD_VARIATION": "7.85"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "834",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_PSD2_Pain_Batch_Info",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (91.84%)",
+          "average_TRANSACTION_COUNT": "2354.00",
+          "current_TRANSACTION_COUNT": "4516",
+          "historic_STD": "660.52",
+          "historic_MEAN": "2460.96",
+          "current_STD_VARIATION": "3.74"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "834",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_PSD2_Pain_File_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": null,
+          "average_TRANSACTION_COUNT": "0",
+          "current_TRANSACTION_COUNT": "0",
+          "historic_STD": null,
+          "historic_MEAN": null,
+          "current_STD_VARIATION": null
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "28960",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_Rtp_Payment_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": "Off-Trend (-97.93%)",
+          "average_TRANSACTION_COUNT": "5761.00",
+          "current_TRANSACTION_COUNT": "119",
+          "historic_STD": "1310.41",
+          "historic_MEAN": "3898.39",
+          "current_STD_VARIATION": "-1.98"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "512",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_Swift_In_Mtix_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": "On-Trend (28.58%)",
+          "average_TRANSACTION_COUNT": "12241.67",
+          "current_TRANSACTION_COUNT": "15746",
+          "historic_STD": "2980.55",
+          "historic_MEAN": "6362.52",
+          "current_STD_VARIATION": "2.47"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "512",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_Swift_In_Mt2ix_Info",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (36.51%)",
+          "average_TRANSACTION_COUNT": "10315.67",
+          "current_TRANSACTION_COUNT": "14092",
+          "historic_STD": "2802.93",
+          "historic_MEAN": "5803.73",
+          "current_STD_VARIATION": "2.95"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "28960",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_To_GP_Tran_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": "On-Trend (-7.48%)",
+          "average_TRANSACTION_COUNT": "7742.00",
+          "current_TRANSACTION_COUNT": "7163",
+          "historic_STD": "2795.10",
+          "historic_MEAN": "4630.15",
+          "current_STD_VARIATION": "0.91"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "28960",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_To_RTP_File_Info",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (90.82%)",
+          "average_TRANSACTION_COUNT": "534.00",
+          "current_TRANSACTION_COUNT": "1019",
+          "historic_STD": "206.16",
+          "historic_MEAN": "367.53",
+          "current_STD_VARIATION": "3.16"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "1901",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_To_WTX_Tran_Info",
+          "is_TRAFFIC_FLOWING": "No",
+          "is_TRAFFIC_ON_TREND": "Off-Trend (-99.83%)",
+          "average_TRANSACTION_COUNT": "5864.00",
+          "current_TRANSACTION_COUNT": "10",
+          "historic_STD": "1485.97",
+          "historic_MEAN": "2418.87",
+          "current_STD_VARIATION": "-1.62"
+        },
+        {
+          "aiT_NUM": "43929",
+          "aiT_NAME": "GFD",
+          "flow_DIRECTION": "OUTBOUND TO",
+          "flow_AIT_NUM": "1901",
+          "flow_AIT_NAME": "E2E_USWires_43929_GFD_To_Wire_Meta_Tran_Info",
+          "is_TRAFFIC_FLOWING": "Yes",
+          "is_TRAFFIC_ON_TREND": "On-Trend (64.18%)",
+          "average_TRANSACTION_COUNT": "15652.00",
+          "current_TRANSACTION_COUNT": "25698",
+          "historic_STD": "5788.08",
+          "historic_MEAN": "9152.82",
+          "current_STD_VARIATION": "2.86"
+        }
+      ],
+      "step": 4
+    },
+    {
+      "id": "46951",
+      "label": "ETS US",
+      "category": "Payment Processing, Sanctions & Investigation",
+      "isTrafficFlowing": false,
+      "currentThroughputTime": 49.51,
+      "averageThroughputTime30": 1.74,
+      "systemHealth": "Healthy",
+      "splunkDatas": [
+        {
+          "aiT_NUM": "46951",
+          "aiT_NAME": "ETS_US",
+          "floW_DIRECTION": "Outbound",
+          "floW_AIT_NUM": "46951",
+          "floW_AIT_NAME": "E2E_US_ETS_Sanctions_Analytics",
+          "iS_TRAFFIC_FLOWING": "Yes",
+          "iS_TRAFFIC_ON_TREND": "Off-Trend (-23.77%)",
+          "averagE_TRANSACTION_COUNT": "3300.75",
+          "currenT_TRANSACTION_COUNT": "2516",
+          "historic_STD": "438.54",
+          "historic_MEAN": "3675.32",
+          "currenT_STD_VARIATION": "-2.64"
+        }
+      ],
+      "step": 4
+    },
+    {
+      "id": "62686",
+      "label": "GTMS",
+      "category": "Payment Processing, Sanctions & Investigation",
+      "isTrafficFlowing": false,
+      "currentThroughputTime": 0,
+      "averageThroughputTime30": 0,
+      "systemHealth": "",
+      "splunkDatas": [],
+      "step": 4
     },
     {
       "id": "74014",
-      "data": { "label": "RTPFP" },
-      "class": "payment processing, sanctions and investigation"
+      "label": "RTPF",
+      "category": "Payment Processing, Sanctions & Investigation",
+      "isTrafficFlowing": false,
+      "currentThroughputTime": 0,
+      "averageThroughputTime30": 0,
+      "systemHealth": "",
+      "splunkDatas": [],
+      "step": 4
+    }
+  ],
+  "processingSections": [
+    {
+      "id": "bg-middleware",
+      "title": "Middleware",
+      "averageThroughputTime": 0,
+      "aitNumber": ["4679", "60745"]
     },
     {
       "id": "bg-origination",
+      "title": "Origination",
+      "averageThroughputTime": 18.48,
+      "aitNumber": ["11554", "41107", "48581", "54071", "71800"]
+    },
+    {
+      "id": "bg-processing",
+      "title": "Payment Processing, Sanctions & Investigation",
+      "averageThroughputTime": 1.74,
+      "aitNumber": ["515", "1901", "43929", "46951", "62686", "74014"]
+    },
+    {
+      "id": "bg-validation",
+      "title": "Payment Validation and Routing",
+      "averageThroughputTime": 30.03,
+      "aitNumber": ["512", "834", "15227", "28960", "31427", "70199"]
+    }
+  ],
+  "systemConnections": [
+    { "id": "SAG", "source": "11554", "target": ["512"] },
+    { "id": "CPMobile", "source": "41107", "target": ["28960"] },
+    { "id": "Loan IQ", "source": "48581", "target": ["4679"] },
+    { "id": "DTS_B2BT", "source": "54071", "target": ["28960", "834"] },
+    { "id": "APIGW", "source": "71800", "target": ["28960"] },
+    { "id": "SAA", "source": "512", "target": ["11554", "74014"] },
+    { "id": "ECS", "source": "834", "target": ["54071", "15227", "4679"] },
+    { "id": "FRP US", "source": "15227", "target": ["28960", "834"] },
+    { "id": "CPO-PAY", "source": "28960", "target": ["41107", "54071", "31427", "4679"] },
+    { "id": "PSH", "source": "31427", "target": ["515", "1901"] },
+    { "id": "RP", "source": "4679", "target": ["48581", "31427", "834", "515", "46951", "43929", "70199"] },
+    { "id": "RPI", "source": "60745", "target": ["70199", "1901"] },
+    { "id": "GBSAPS", "source": "515", "target": ["70199", "4679"] },
+    { "id": "WTX", "source": "1901", "target": ["60745", "4679", "74014"] },
+    { "id": "GFD", "source": "43929", "target": ["28960", "4679"] },
+    { "id": "ETS US", "source": "46951", "target": ["4679"] },
+    { "id": "GTMS", "source": "62686", "target": ["4679"] },
+    { "id": "RTPF", "source": "74014", "target": ["512", "70199", "1901"] }
+  ],
+  "layOutConfig": [
+    {
+      "id": "bg-origination",
       "type": "background",
-      "label": "Origination & Receipt"
+      "position": { "x": 0, "y": 0 },
+      "data": { "title": "Origination" },
+      "draggable": false,
+      "selectable": false,
+      "zIndex": -1,
+      "style": { "width": "350px", "height": "960px" },
+      "sectionPositions": {
+        "sections": {
+          "bg-origination": {
+            "baseX": 50,
+            "positions": [
+              { "x": 50, "y": 0 },
+              { "x": 50, "y": 192 },
+              { "x": 50, "y": 384 },
+              { "x": 50, "y": 576 },
+              { "x": 50, "y": 768 }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "bg-validation",
       "type": "background",
-      "label": "Validation & Enrichment"
+      "position": { "x": 350, "y": 0 },
+      "data": { "title": "Payment Validation and Routing" },
+      "draggable": false,
+      "selectable": false,
+      "zIndex": -1,
+      "style": { "width": "350px", "height": "960px" },
+      "sectionPositions": {
+        "sections": {
+          "bg-validation": {
+            "baseX": 425,
+            "positions": [
+              { "x": 425, "y": 0 },
+              { "x": 425, "y": 160 },
+              { "x": 425, "y": 320 },
+              { "x": 425, "y": 480 },
+              { "x": 425, "y": 640 },
+              { "x": 425, "y": 800 }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "bg-middleware",
       "type": "background",
-      "label": "Payment Processing, Sanctions & Investigation"
+      "position": { "x": 700, "y": 0 },
+      "data": { "title": "Middleware" },
+      "draggable": false,
+      "selectable": false,
+      "zIndex": -1,
+      "style": { "width": "450px", "height": "960px" },
+      "sectionPositions": {
+        "sections": {
+          "bg-middleware": {
+            "baseX": 750,
+            "positions": [{ "x": 750, "y": 0 }, { "x": 750, "y": 240 }, { "x": 750, "y": 480 }]
+          }
+        }
+      }
     },
     {
       "id": "bg-processing",
       "type": "background",
-      "label": "Accounting & Statement Processing"
-    },
-    {
-      "id": "node-1",
-      "parentId": "bg-origination",
-      "title": "GPP (UI)",
-      "subtext": "Global PayPlus"
-    },
-    {
-      "id": "node-2",
-      "parentId": "bg-origination",
-      "title": "Third Party",
-      "subtext": "e.g., Bottomline"
-    },
-    {
-      "id": "node-3",
-      "parentId": "bg-origination",
-      "title": "Manual",
-      "subtext": "Internal System"
-    },
-    {
-      "id": "node-4",
-      "parentId": "bg-validation",
-      "title": "GVP",
-      "subtext": "Global Validation"
-    },
-    {
-      "id": "node-5",
-      "parentId": "bg-validation",
-      "title": "GPEP",
-      "subtext": "Payment Enrichment"
-    },
-    {
-      "id": "node-6",
-      "parentId": "bg-middleware",
-      "title": "GTMS (Limits)",
-      "subtext": "Transaction Monitoring"
-    },
-    {
-      "id": "node-7",
-      "parentId": "bg-middleware",
-      "title": "ETS (Sanctions)",
-      "subtext": "Enterprise Sanctions"
-    },
-    {
-      "id": "node-8",
-      "parentId": "bg-middleware",
-      "title": "GFD (Fraud)",
-      "subtext": "Fraud Detection"
-    },
-    {
-      "id": "node-9",
-      "parentId": "bg-middleware",
-      "title": "GPP (Engine)",
-      "subtext": "Global PayPlus"
-    },
-    {
-      "id": "node-10",
-      "parentId": "bg-processing",
-      "title": "Accounting",
-      "subtext": "Financial Records"
-    },
-    {
-      "id": "node-11",
-      "parentId": "bg-processing",
-      "title": "Statements",
-      "subtext": "Customer Statements"
-    }
-  ],
-  "edges": [
-    {
-      "id": "11554-512",
-      "source": "11554",
-      "target": "512",
-      "type": "step"
-    },
-    {
-      "id": "48581-4679",
-      "source": "48581",
-      "target": "4679",
-      "type": "step"
-    },
-    {
-      "id": "41107-28960",
-      "source": "41107",
-      "target": "28960",
-      "type": "step"
-    },
-    {
-      "id": "41107-11697",
-      "source": "41107",
-      "target": "11697",
-      "type": "step"
-    },
-    {
-      "id": "41107-54071",
-      "source": "41107",
-      "target": "54071",
-      "type": "step"
-    },
-    {
-      "id": "54071-834",
-      "source": "54071",
-      "target": "834",
-      "type": "step"
-    },
-    {
-      "id": "512-74014",
-      "source": "512",
-      "target": "74014",
-      "type": "step"
-    },
-    {
-      "id": "gpo-fan-out",
-      "source": "70199",
-      "target": ["28960", "74014", "515", "60745"],
-      "type": "step"
-    },
-    {
-      "id": "hrp-fan-out",
-      "source": "4679",
-      "target": ["1901", "882", "73929", "46951", "62686", "515"],
-      "type": "step"
-    },
-    {
-      "id": "28960-15227",
-      "source": "28960",
-      "target": "15227",
-      "type": "step"
-    },
-    {
-      "id": "28960-4679",
-      "source": "28960",
-      "target": "4679",
-      "type": "step"
-    },
-    {
-      "id": "28960-73929",
-      "source": "28960",
-      "target": "73929",
-      "type": "step"
-    },
-    {
-      "id": "15227-834",
-      "source": "15227",
-      "target": "834",
-      "type": "step"
-    },
-    {
-      "id": "31427-4679",
-      "source": "31427",
-      "target": "4679",
-      "type": "step"
-    },
-    {
-      "id": "834-4679",
-      "source": "834",
-      "target": "4679",
-      "type": "step"
-    },
-    {
-      "id": "60745-1901",
-      "source": "60745",
-      "target": "1901",
-      "type": "step"
-    },
-    {
-      "id": "60745-882",
-      "source": "60745",
-      "target": "882",
-      "type": "step"
-    },
-    {
-      "id": "1901-74014",
-      "source": "1901",
-      "target": "74014",
-      "type": "step"
-    },
-    {
-      "id": "882-74014",
-      "source": "882",
-      "target": "74014",
-      "type": "step"
-    },
-    {
-      "id": "e1-4",
-      "source": "node-1",
-      "target": "node-4"
-    },
-    {
-      "id": "e2-4",
-      "source": "node-2",
-      "target": "node-4"
-    },
-    {
-      "id": "e3-4",
-      "source": "node-3",
-      "target": "node-4"
-    },
-    {
-      "id": "e4-5",
-      "source": "node-4",
-      "target": "node-5"
-    },
-    {
-      "id": "e5-6",
-      "source": "node-5",
-      "target": "node-6"
-    },
-    {
-      "id": "e6-7",
-      "source": "node-6",
-      "target": "node-7"
-    },
-    {
-      "id": "e7-8",
-      "source": "node-7",
-      "target": "node-8"
-    },
-    {
-      "id": "e8-9",
-      "source": "node-8",
-      "target": "node-9"
-    },
-    {
-      "id": "e9-10",
-      "source": "node-9",
-      "target": "node-10"
-    },
-    {
-      "id": "e10-11",
-      "source": "node-10",
-      "target": "node-11"
+      "position": { "x": 1150, "y": 0 },
+      "data": { "title": "Payment Processing, Sanctions & Investigation" },
+      "draggable": false,
+      "selectable": false,
+      "zIndex": -1,
+      "style": { "width": "500px", "height": "960px" },
+      "sectionPositions": {
+        "sections": {
+          "bg-processing": {
+            "baseX": 1200,
+            "positions": [
+              { "x": 1200, "y": 0 },
+              { "x": 1200, "y": 160 },
+              { "x": 1200, "y": 320 },
+              { "x": 1200, "y": 480 },
+              { "x": 1200, "y": 640 },
+              { "x": 1200, "y": 800 }
+            ]
+          }
+        }
+      }
     }
   ]
 }

@@ -16,11 +16,34 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
       return time
     }
 
-    const totalTime = backendFlowData.processingSections.reduce((sum, section) => sum + section.averageTime, 0)
+    const totalTime = backendFlowData.processingSections.reduce(
+      (sum, section) => sum + section.averageThroughputTime,
+      0,
+    )
     return totalTime / backendFlowData.processingSections.length
   }
 
+  const calculateNodeAverages = () => {
+    if (!backendFlowData?.nodes || backendFlowData.nodes.length === 0) {
+      return { current: 0, historical: 0, nodeCount: 0 }
+    }
+
+    const validNodes = backendFlowData.nodes.filter(
+      (node) => node.currentThruputTime30 > 0 && node.averageThruputTime30 > 0,
+    )
+
+    if (validNodes.length === 0) {
+      return { current: 0, historical: 0, nodeCount: 0 }
+    }
+
+    const currentAvg = validNodes.reduce((sum, node) => sum + node.currentThruputTime30, 0) / validNodes.length
+    const historicalAvg = validNodes.reduce((sum, node) => sum + node.averageThruputTime30, 0) / validNodes.length
+
+    return { current: currentAvg, historical: historicalAvg, nodeCount: validNodes.length }
+  }
+
   const displayTime = calculateOverallAverage()
+  const nodeAverages = calculateNodeAverages()
   const hasBackendData = backendFlowData !== null && backendFlowData?.nodes.length > 0
 
   const getPerformanceStatus = (totalTime: number) => {
@@ -136,9 +159,18 @@ export function InfoSection({ time = 0 }: InfoSectionProps) {
               <br />
               Section averages:{" "}
               {backendFlowData.processingSections
-                .map((section) => `${section.sectionName}: ${section.averageTime.toFixed(1)}s`)
+                .map((section) => `${section.title}: ${section.averageThroughputTime.toFixed(1)}s`)
                 .join(", ")}
               <br />
+              {nodeAverages.nodeCount > 0 && (
+                <>
+                  Node timing (Current vs 30-day avg): {nodeAverages.current.toFixed(1)}s vs{" "}
+                  {nodeAverages.historical.toFixed(1)}s
+                  {nodeAverages.current > nodeAverages.historical * 1.1 && " ↗ (Above average)"}
+                  {nodeAverages.current < nodeAverages.historical * 0.9 && " ↘ (Below average)"}
+                  <br />
+                </>
+              )}
               System connections: {backendFlowData.systemConnections.length}
             </>
           ) : (

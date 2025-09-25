@@ -18,6 +18,7 @@ interface SectionDurationBadgeProps {
     averageThruputTime30: number
     healthStatus?: string
     transactionCount?: number
+    systemHealth?: string
   }>
 }
 
@@ -51,6 +52,17 @@ export default function SectionDurationBadge({
   }
 
   const getTrendIcon = () => {
+    if (nodeTimingData && nodeTimingData.length > 0) {
+      const avgCurrentTime =
+        nodeTimingData.reduce((sum, node) => sum + (node.currentThruputTime30 || 0), 0) / nodeTimingData.length
+      const avgHistoricalTime =
+        nodeTimingData.reduce((sum, node) => sum + (node.averageThruputTime30 || 0), 0) / nodeTimingData.length
+
+      if (avgCurrentTime > avgHistoricalTime * 1.1) return "↗"
+      if (avgCurrentTime < avgHistoricalTime * 0.9) return "↘"
+      return "→"
+    }
+
     switch (trend) {
       case "up":
         return "↗"
@@ -74,7 +86,8 @@ export default function SectionDurationBadge({
           const currentTime = node.currentThruputTime30
             ? ` (Current: ${formatDuration(node.currentThruputTime30)})`
             : ""
-          const healthStatus = node.healthStatus ? ` [${node.healthStatus}]` : ""
+          const healthStatus =
+            node.systemHealth || node.healthStatus ? ` [${node.systemHealth || node.healthStatus}]` : ""
           const transactionCount = node.transactionCount ? ` - ${node.transactionCount} txns` : ""
           return `${node.label}: ${formatDuration(node.averageThruputTime30)}${currentTime}${healthStatus}${transactionCount}`
         })
@@ -103,6 +116,9 @@ export default function SectionDurationBadge({
         {showDetails && maxDuration ? `Max: ${formatDuration(maxDuration)}` : `Avg: ${formatDuration(duration)}`}
       </span>
       <span className="text-xs opacity-70">{getTrendIcon()}</span>
+      {nodeTimingData && nodeTimingData.length > 0 && (
+        <span className="text-xs opacity-60 ml-1">({nodeTimingData.length} nodes)</span>
+      )}
     </div>
   )
 }

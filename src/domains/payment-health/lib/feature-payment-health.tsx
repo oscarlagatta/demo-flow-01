@@ -23,6 +23,9 @@ import {
   Globe,
   ChevronDown,
   ChevronRight,
+  MapPin,
+  Zap,
+  Building2,
 } from "lucide-react"
 
 const mainPageItems: {
@@ -45,7 +48,7 @@ const mainPageItems: {
   },
 ]
 
-const paymentFlowItems: {
+const amrsRegions: {
   id: string
   title: string
   subtitle: string
@@ -55,6 +58,56 @@ const paymentFlowItems: {
     id: "us-wires",
     title: "US Wires",
     subtitle: "US Wire Transfer FLOW",
+    Icon: DollarSign,
+  },
+  {
+    id: "us-rtp",
+    title: "US RTP",
+    subtitle: "Real-Time Payments FLOW",
+    Icon: Zap,
+  },
+  {
+    id: "us-ach",
+    title: "US ACH",
+    subtitle: "Automated Clearing House FLOW",
+    Icon: Building2,
+  },
+  {
+    id: "canada",
+    title: "Canada",
+    subtitle: "Canadian Payment FLOW",
+    Icon: MapPin,
+  },
+]
+
+const latamCountries: {
+  id: string
+  title: string
+  subtitle: string
+  Icon: LucideIcon
+}[] = [
+  {
+    id: "brazil",
+    title: "Brazil",
+    subtitle: "Brazil Payment FLOW",
+    Icon: Banknote,
+  },
+  {
+    id: "mexico",
+    title: "Mexico",
+    subtitle: "Mexico Payment FLOW",
+    Icon: Coins,
+  },
+  {
+    id: "argentina",
+    title: "Argentina",
+    subtitle: "Argentina Payment FLOW",
+    Icon: CircleDollarSign,
+  },
+  {
+    id: "chile",
+    title: "Chile",
+    subtitle: "Chile Payment FLOW",
     Icon: DollarSign,
   },
 ]
@@ -116,6 +169,8 @@ function SecondaryBar({
   usWiresMode,
   onUSWiresModeChange,
 }: SecondaryBarProps) {
+  const [isAmrsExpanded, setIsAmrsExpanded] = useState(false)
+  const [isLatamExpanded, setIsLatamExpanded] = useState(false)
   const [isApacExpanded, setIsApacExpanded] = useState(false)
 
   if (!isVisible) {
@@ -146,7 +201,7 @@ function SecondaryBar({
       </div>
 
       {/* Navigation Content */}
-      <div className="flex-1 space-y-6 p-4">
+      <div className="flex-1 space-y-6 overflow-y-auto p-4">
         {!isCollapsed && (
           <div>
             <h3 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">MAIN PAGES</h3>
@@ -173,7 +228,9 @@ function SecondaryBar({
 
         {!isCollapsed && (
           <div className="mb-3 space-y-3" data-tour="flow-diagrams">
-            <h3 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">FLOW DIAGRAMS</h3>
+            <h3 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
+              REGIONAL FLOWS
+            </h3>
             <div className="mb-2 text-xs font-medium text-gray-700">View Mode</div>
             <div className="flex items-center rounded-md border bg-white p-0.5 shadow-sm">
               <button
@@ -200,78 +257,144 @@ function SecondaryBar({
               </button>
             </div>
 
-            <nav className="space-y-1" data-tour="flow-diagrams">
-              {paymentFlowItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => onSubItemSelected(item.id)}
-                  className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
-                    selectedSubItem === item.id ? "text-white shadow-md" : "text-foreground hover:bg-accent"
-                  }`}
-                  style={selectedSubItem === item.id ? { backgroundColor: "#104de8" } : undefined}
-                >
-                  <item.Icon className="mt-0.5 h-5 w-5 flex-shrink-0" />
-                  {!isCollapsed && (
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium">{item.title}</div>
-                      <div className="mt-0.5 text-xs opacity-75">{item.subtitle}</div>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </nav>
-          </div>
-        )}
+            <div className="space-y-1">
+              <button
+                onClick={() => setIsAmrsExpanded(!isAmrsExpanded)}
+                className="text-foreground hover:bg-accent flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors"
+              >
+                <Globe className="mt-0.5 h-5 w-5 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">AMRS</div>
+                  <div className="mt-0.5 text-xs opacity-75">Americas Payment Flows</div>
+                </div>
+                {isAmrsExpanded ? (
+                  <ChevronDown className="mt-1 h-4 w-4 flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="mt-1 h-4 w-4 flex-shrink-0" />
+                )}
+              </button>
 
-        {!isCollapsed && (
-          <div>
-            <button
-              onClick={() => setIsApacExpanded(!isApacExpanded)}
-              className="text-foreground hover:bg-accent flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors"
-            >
-              <Globe className="mt-0.5 h-5 w-5 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium">APAC</div>
-                <div className="mt-0.5 text-xs opacity-75">Asia Pacific Payment Flows</div>
-              </div>
-              {isApacExpanded ? (
-                <ChevronDown className="mt-1 h-4 w-4 flex-shrink-0" />
-              ) : (
-                <ChevronRight className="mt-1 h-4 w-4 flex-shrink-0" />
+              {isAmrsExpanded && (
+                <nav className="ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
+                  {amrsRegions.map((region) => (
+                    <button
+                      key={region.id}
+                      onClick={() => onSubItemSelected(region.id)}
+                      className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                        selectedSubItem === region.id ? "text-white shadow-md" : "text-foreground hover:bg-accent"
+                      }`}
+                      style={selectedSubItem === region.id ? { backgroundColor: "#104de8" } : undefined}
+                    >
+                      <region.Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium">{region.title}</div>
+                        <div className="mt-0.5 text-xs opacity-75">{region.subtitle}</div>
+                      </div>
+                    </button>
+                  ))}
+
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => setIsLatamExpanded(!isLatamExpanded)}
+                      className="text-foreground hover:bg-accent flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors"
+                    >
+                      <Globe className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium">LATAM</div>
+                        <div className="mt-0.5 text-xs opacity-75">Latin America</div>
+                      </div>
+                      {isLatamExpanded ? (
+                        <ChevronDown className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                      )}
+                    </button>
+
+                    {isLatamExpanded && (
+                      <nav className="ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
+                        {latamCountries.map((country) => (
+                          <button
+                            key={country.id}
+                            onClick={() => onSubItemSelected(country.id)}
+                            className={`flex w-full items-start gap-3 rounded-lg px-2 py-1.5 text-left transition-colors ${
+                              selectedSubItem === country.id
+                                ? "text-white shadow-md"
+                                : "text-foreground hover:bg-accent"
+                            }`}
+                            style={selectedSubItem === country.id ? { backgroundColor: "#104de8" } : undefined}
+                          >
+                            <country.Icon className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-medium">{country.title}</div>
+                              <div className="mt-0.5 text-[10px] opacity-75">{country.subtitle}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </nav>
+                    )}
+                  </div>
+                </nav>
               )}
-            </button>
+            </div>
 
-            {isApacExpanded && (
-              <nav className="mt-1 space-y-1">
-                {apacCountries.map((country) => (
-                  <button
-                    key={country.id}
-                    onClick={() => onSubItemSelected(country.id)}
-                    className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
-                      selectedSubItem === country.id ? "text-white shadow-md" : "text-foreground hover:bg-accent"
-                    }`}
-                    style={selectedSubItem === country.id ? { backgroundColor: "#104de8" } : undefined}
-                  >
-                    <country.Icon className="mt-0.5 h-5 w-5 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium">{country.title}</div>
-                      <div className="mt-0.5 text-xs opacity-75">{country.subtitle}</div>
-                    </div>
-                  </button>
-                ))}
-              </nav>
-            )}
+            <div className="space-y-1">
+              <button
+                onClick={() => setIsApacExpanded(!isApacExpanded)}
+                className="text-foreground hover:bg-accent flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors"
+              >
+                <Globe className="mt-0.5 h-5 w-5 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium">APAC</div>
+                  <div className="mt-0.5 text-xs opacity-75">Asia Pacific Payment Flows</div>
+                </div>
+                {isApacExpanded ? (
+                  <ChevronDown className="mt-1 h-4 w-4 flex-shrink-0" />
+                ) : (
+                  <ChevronRight className="mt-1 h-4 w-4 flex-shrink-0" />
+                )}
+              </button>
+
+              {isApacExpanded && (
+                <nav className="ml-4 space-y-1 border-l-2 border-gray-200 pl-2">
+                  {apacCountries.map((country) => (
+                    <button
+                      key={country.id}
+                      onClick={() => onSubItemSelected(country.id)}
+                      className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                        selectedSubItem === country.id ? "text-white shadow-md" : "text-foreground hover:bg-accent"
+                      }`}
+                      style={selectedSubItem === country.id ? { backgroundColor: "#104de8" } : undefined}
+                    >
+                      <country.Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium">{country.title}</div>
+                        <div className="mt-0.5 text-xs opacity-75">{country.subtitle}</div>
+                      </div>
+                    </button>
+                  ))}
+                </nav>
+              )}
+            </div>
           </div>
         )}
 
         {isCollapsed && (
-          <button
-            onClick={() => setIsApacExpanded(!isApacExpanded)}
-            className="text-foreground hover:bg-accent flex w-full items-center justify-center rounded-lg px-3 py-2"
-            title="APAC"
-          >
-            <Globe className="h-5 w-5" />
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => setIsAmrsExpanded(!isAmrsExpanded)}
+              className="text-foreground hover:bg-accent flex w-full items-center justify-center rounded-lg px-3 py-2"
+              title="AMRS"
+            >
+              <Globe className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setIsApacExpanded(!isApacExpanded)}
+              className="text-foreground hover:bg-accent flex w-full items-center justify-center rounded-lg px-3 py-2"
+              title="APAC"
+            >
+              <Globe className="h-5 w-5" />
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -290,6 +413,37 @@ export function FeaturePaymentHealth() {
         return <PaymentHealthDashboard />
       case "us-wires":
         return <UsWires isMonitorMode={useWiresMode === "observability"} />
+      case "us-rtp":
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-semibold mb-4">US RTP Payment Flow</h2>
+            <p className="text-muted-foreground">Real-Time Payments flow content is coming soon.</p>
+          </div>
+        )
+      case "us-ach":
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-semibold mb-4">US ACH Payment Flow</h2>
+            <p className="text-muted-foreground">Automated Clearing House flow content is coming soon.</p>
+          </div>
+        )
+      case "canada":
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-semibold mb-4">Canada Payment Flow</h2>
+            <p className="text-muted-foreground">Canadian payment flow content is coming soon.</p>
+          </div>
+        )
+      case "brazil":
+      case "mexico":
+      case "argentina":
+      case "chile":
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-semibold mb-4 capitalize">{selectedSubItem} Payment Flow</h2>
+            <p className="text-muted-foreground">LATAM payment flow content is coming soon.</p>
+          </div>
+        )
       default:
         return (
           <div className="p-6">

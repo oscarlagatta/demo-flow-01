@@ -1,8 +1,7 @@
-// checked
 "use client"
 
 import type React from "react"
-import { memo, useMemo, useState } from "react"
+import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -21,27 +20,33 @@ import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 import { MoreVertical } from "lucide-react"
 
 import { IncidentSheet } from "../../../sheets/incident-sheet"
-import { Button } from "@/components/ui/button" // NEW
+import { Button } from "@/components/ui/button"
+import type { CustomNodeData } from "@/types/custom-node-data" // Import CustomNodeData
+import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 
-type ActionType = "flow" | "trend" | "balanced"
-
-type CustomNodeData = {
-  title: string
-  subtext: string
-  isSelected?: boolean
-  isConnected?: boolean
-  isDimmed?: boolean
-  onClick?: (nodeId: string) => void
-  onActionClick?: (aitNum: string, action: ActionType) => void
+const RESIZE_CONSTRAINTS = {
+  minWidth: 150,
+  minHeight: 80,
+  maxWidth: 400,
+  maxHeight: 200,
 }
 
-type CustomNodeType = Node<CustomNodeData>
+const CustomNodeUsWires = ({
+  data,
+  id,
+  onHideSearch,
+}: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
+  const [dimensions, setDimensions] = useState({
+    width: 220,
+    height: 110,
+  })
+  const [isResizing, setIsResizing] = useState(false)
+  const [activeHandle, setActiveHandle] = useState<"nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w" | null>(null)
+  const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 })
+  const nodeRef = useRef<HTMLDivElement>(null)
 
-const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType> & { onHideSearch: () => void }) => {
-  // const { hasRequiredRole } = useAuthzRules();
-  const isAuthorized = true // hasRequiredRole();
+  const isAuthorized = true
 
-  // parameter enabled: isAuthorized
   const {
     data: splunkData,
     isLoading,
@@ -53,52 +58,105 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
 
   const { active: txActive, isFetching: txFetching, matchedAitIds, showTable } = useTransactionSearchUsWiresContext()
 
-  // Extract AIT number from the node data subtext (format: "AIT {number}")
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
     return match ? match[1] : null
   }, [data.subtext])
 
-  // Compute trend colors from Splunk data
   const trendColorMapping = useMemo(() => {
     if (!splunkData) return {}
     return computeTrendColors(splunkData)
   }, [splunkData])
 
-  // Compute traffic status colors from Splunk data
   const trafficStatusMapping = useMemo(() => {
     if (!splunkData) return {}
     return computeTrafficStatusColors(splunkData)
   }, [splunkData])
 
-  // Get the trend color for this specific node
   const trendColor: TrendColor = aitNum && trendColorMapping[aitNum] ? trendColorMapping[aitNum] : "grey"
-
-  // Get the traffic status color for this specific node
   const trafficStatusColor: TrafficStatusColor =
     aitNum && trafficStatusMapping[aitNum] ? trafficStatusMapping[aitNum] : "grey"
 
   const trendColorClass = getTrendColorClass(trendColor)
   const trafficStatusColorClass = getTrafficStatusColorClass(trafficStatusColor)
 
-  const handleClick = () => {
-    if (data.onClick && id && !isLoading) {
-      data.onClick(id)
-    }
-  }
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w") => {
+      e.stopPropagation()
+      e.preventDefault()
+      // Prevent React Flow from capturing this event
+      e.nativeEvent.stopImmediatePropagation()
 
-  const triggerAction = (action: ActionType) => {
-    if (!isLoading && !isFetching && aitNum && data.onActionClick) {
-      data.onActionClick(aitNum, action)
+      setIsResizing(true)
+      setActiveHandle(handle)
+      resizeStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        width: dimensions.width,
+        height: dimensions.height,
+      }
+    },
+    [dimensions],
+  )
+
+  const handleResizeMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !activeHandle) return
+
+      requestAnimationFrame(() => {
+        const deltaX = e.clientX - resizeStartRef.current.x
+        const deltaY = e.clientY - resizeStartRef.current.y
+
+        let newWidth = resizeStartRef.current.width
+        let newHeight = resizeStartRef.current.height
+
+        // Calculate new dimensions based on handle position
+        if (activeHandle.includes("e")) {
+          newWidth = resizeStartRef.current.width + deltaX
+        } else if (activeHandle.includes("w")) {
+          newWidth = resizeStartRef.current.width - deltaX
+        }
+
+        if (activeHandle.includes("s")) {
+          newHeight = resizeStartRef.current.height + deltaY
+        } else if (activeHandle.includes("n")) {
+          newHeight = resizeStartRef.current.height - deltaY
+        }
+
+        // Apply constraints
+        newWidth = Math.max(RESIZE_CONSTRAINTS.minWidth, Math.min(RESIZE_CONSTRAINTS.maxWidth, newWidth))
+        newHeight = Math.max(RESIZE_CONSTRAINTS.minHeight, Math.min(RESIZE_CONSTRAINTS.maxHeight, newHeight))
+
+        setDimensions({ width: newWidth, height: newHeight })
+      })
+    },
+    [isResizing, activeHandle],
+  )
+
+  const handleResizeEnd = useCallback(() => {
+    if (!isResizing) return
+
+    setIsResizing(false)
+    setActiveHandle(null)
+    document.body.style.cursor = "default"
+
+    // Queue with current position (x, y) - for now using 0, 0 as React Flow manages position
+    const queueDimensions = (width: number, height: number, x: number, y: number) => {
+      console.log("[v0] Dimensions queued after resize")
     }
-    onHideSearch() // Hide search when an action is triggered.
-  }
+
+    if (queueDimensions) {
+      queueDimensions(dimensions.width, dimensions.height, 0, 0)
+    } else {
+      console.warn("[v0] queueDimensions function not available")
+    }
+  }, [isResizing, dimensions])
 
   const [isDetailsLoading, setIsDetailsLoading] = useState(false)
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = useState(false)
 
   const handleDetailsClick = async (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent node selection
+    e.stopPropagation()
 
     if (aitNum && !isDetailsLoading) {
       setIsDetailsLoading(true)
@@ -116,11 +174,9 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
     setIsIncidentSheetOpen(true)
   }
 
-  // Determine styling based on selection state and loading
   const getCardClassName = () => {
     let baseClass = "border-2 border-[rgb(10, 49,97)] shadow-md cursor-pointer transition-all duration-200"
 
-    // Loading state styling with glassmorphism
     if (isLoading || isFetching) {
       baseClass += " bg-gray-50"
     } else if (isError) {
@@ -140,7 +196,88 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
     return baseClass
   }
 
-  // Show loading skeleton during initial load of Splunk (baseline) data
+  const fontSize = Math.max(8, Math.min(12, dimensions.width / 20))
+  const buttonHeight = Math.max(24, Math.min(32, dimensions.height / 4))
+
+  const { loadDimensions } = useNodeResizePersistence({
+    nodeId: id,
+    onConflict: (serverVersion, clientVersion) => {
+      console.warn(`[v0] Dimension conflict for node ${id}. Server: ${serverVersion}, Client: ${clientVersion}`)
+      // Optionally reload dimensions from server
+      loadDimensions().then((dims) => {
+        if (dims) {
+          setDimensions({ width: dims.width, height: dims.height })
+        }
+      })
+    },
+  })
+
+  useEffect(() => {
+    loadDimensions().then((dims) => {
+      if (dims) {
+        console.log("[v0] Loaded saved dimensions for node:", id, dims)
+        setDimensions({ width: dims.width, height: dims.height })
+      }
+    })
+  }, [id, loadDimensions])
+
+  useEffect(() => {
+    const errorHandler = (e: ErrorEvent) => {
+      if (e.message.includes("ResizeObserver loop")) {
+        e.stopImmediatePropagation()
+      }
+    }
+    window.addEventListener("error", errorHandler)
+
+    return () => {
+      window.removeEventListener("error", errorHandler)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleResizeMove)
+      document.addEventListener("mouseup", handleResizeEnd)
+      document.body.style.cursor = getCursorStyle(activeHandle)
+      document.body.style.userSelect = "none"
+
+      return () => {
+        document.removeEventListener("mousemove", handleResizeMove)
+        document.removeEventListener("mouseup", handleResizeEnd)
+        document.body.style.cursor = "default"
+        document.body.style.userSelect = "auto"
+      }
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd, activeHandle])
+
+  const getCursorStyle = (handle: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w" | null) => {
+    if (!handle) return "default"
+    const cursors: Record<"nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w", string> = {
+      nw: "nwse-resize",
+      ne: "nesw-resize",
+      sw: "nesw-resize",
+      se: "nwse-resize",
+      n: "ns-resize",
+      s: "ns-resize",
+      e: "ew-resize",
+      w: "ew-resize",
+    }
+    return cursors[handle]
+  }
+
+  const handleClick = () => {
+    if (data.onClick && id && !isLoading && !isResizing) {
+      data.onClick(id)
+    }
+  }
+
+  const triggerAction = (action: "flow" | "trend" | "balanced") => {
+    if (!isLoading && !isFetching && aitNum && data.onActionClick) {
+      data.onActionClick(aitNum, action)
+    }
+    onHideSearch()
+  }
+
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />
   }
@@ -149,10 +286,6 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
     return <div className="text-red-500">Failed to load data. Please try again later.</div>
   }
 
-  // Three-phase UI logic for buttons:
-  // 1) Default mode (no txActive): show Flow/Trend/Balanced
-  // 2) Loading mode (txActive && txFetching): show Summary/Details (loading) on all nodes to indicate a fetch is happening
-  // 3) Results mode (txActive && !txFetching): show Summary/Details only on AITs present in matchedAitIds, show NO buttons otherwise
   const inDefaultMode = !txActive
   const inLoadingMode = txActive && txFetching
   const inResultsMode = txActive && !txFetching
@@ -160,183 +293,264 @@ const CustomNodeUsWires = ({ data, id, onHideSearch }: NodeProps<CustomNodeType>
 
   return (
     <>
-      <Card
-        className={`${getCardClassName()} h-[100px]`} // fixed height
-        onClick={handleClick}
-        data-testid={`custom-node-${id}`}
-      >
-        <Handle type="target" position={Position.Left} className="h-2 w-2 !bg-gray-400" />
-        <Handle type="source" position={Position.Right} className="h-2 w-2 !bg-gray-400" />
-        <Handle type="source" position={Position.Top} className="h-2 w-2 !bg-gray-400" />
-        <Handle type="source" position={Position.Bottom} className="h-2 w-2 !bg-gray-400" />
-        <div className="absolute top-1 right-1 z-10">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 rounded-full p-0 hover:bg-gray-200/80"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreVertical className="h-3 w-3 text-gray-600" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleCreateIncident}>Create Incident Ticket</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <CardHeader className="p-2">
-          <CardTitle className="text-center text-xs font-bold whitespace-nowrap">{data.title}</CardTitle>
-          <p className="text-muted-foreground text-center text-[10px]">{data.subtext}</p>
-        </CardHeader>
-        <CardContent className="p-2 pt-0">
-          <div className="flex gap-1 transition-all duration-200">
-            {!isAuthorized ? (
-              <>
-                <LoadingButton
-                  isLoading={inLoadingMode}
-                  loadingText="..."
-                  variant="outline"
-                  className={`h-7 min-w-0 flex-1 px-2 text-[10px] font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                    inResultsMode && isMatched
-                      ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                      : inResultsMode && !isMatched
-                        ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                        : "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                  }`}
-                  disabled={!isMatched}
-                >
-                  Summary
-                </LoadingButton>
-                <LoadingButton
-                  isLoading={true}
-                  loadingText="..."
-                  variant="outline"
-                  className={`h-7 min-w-0 flex-1 px-2 text-[10px] font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                    inResultsMode && isMatched
-                      ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                      : inResultsMode && !isMatched
-                        ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                        : "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                  }`}
-                  onClick={inResultsMode && isMatched ? handleDetailsClick : undefined}
-                  disabled={!isMatched || isDetailsLoading}
-                >
-                  Details
-                </LoadingButton>
-              </>
-            ) : (
-              <>
-                {inDefaultMode && (
-                  <>
-                    <LoadingButton
-                      isLoading={isFetching}
-                      loadingText="..."
-                      variant="outline"
-                      className={`h-7 min-w-0 flex-1 px-2 text-[10px] text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
-                        isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        triggerAction("flow")
-                      }}
-                      disabled={trafficStatusColorClass === "bg-gray-400"}
-                    >
-                      Flow
-                    </LoadingButton>
-                    <LoadingButton
-                      isLoading={isFetching}
-                      loadingText="..."
-                      variant="outline"
-                      className={`h-7 min-w-0 flex-1 px-2 text-[10px] text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
-                        isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        triggerAction("trend")
-                      }}
-                      disabled={trendColorClass === "bg-gray-400"}
-                    >
-                      Trend
-                    </LoadingButton>
-                    <LoadingButton
-                      isLoading={isFetching}
-                      loadingText="..."
-                      variant="outline"
-                      className="h-7 min-w-0 flex-1 px-2 text-[10px] font-medium text-white shadow-sm rounded-md border-0 bg-slate-500 hover:bg-slate-600 hover:scale-105 transition-all duration-200"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        triggerAction("balanced")
-                      }}
-                      disabled={trendColorClass === "bg-gray-400"}
-                    >
-                      Balanced
-                    </LoadingButton>
-                  </>
-                )}
+      <div ref={nodeRef} className="relative group" style={{ width: dimensions.width, height: dimensions.height }}>
+        <Card
+          className={getCardClassName()}
+          style={{ width: "100%", height: "100%" }}
+          onClick={handleClick}
+          data-testid={`custom-node-${id}`}
+        >
+          <Handle type="target" position={Position.Left} className="h-2 w-2 !bg-gray-400" />
+          <Handle type="source" position={Position.Right} className="h-2 w-2 !bg-gray-400" />
+          <Handle type="source" position={Position.Top} className="h-2 w-2 !bg-gray-400" />
+          <Handle type="source" position={Position.Bottom} className="h-2 w-2 !bg-gray-400" />
 
-                {inLoadingMode && (
-                  <>
-                    <LoadingButton
-                      isLoading={true}
-                      loadingText="..."
-                      variant="outline"
-                      aria-label="Trigger Summary Action"
-                      className="flex h-7 flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 text-[10px] font-medium text-white shadow-sm rounded-md hover:bg-blue-600 transition-all duration-200"
-                    >
-                      Summary
-                    </LoadingButton>
-                    <LoadingButton
-                      isLoading={true}
-                      loadingText="..."
-                      variant="outline"
-                      aria-label="Trigger Details Action"
-                      className="flex h-7 flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 text-[10px] font-medium text-white shadow-sm rounded-md hover:bg-blue-600 transition-all duration-200"
-                    >
-                      Details
-                    </LoadingButton>
-                  </>
-                )}
-
-                {inResultsMode && (
-                  <>
-                    <LoadingButton
-                      isLoading={false}
-                      loadingText="..."
-                      variant="outline"
-                      aria-label="Trigger Summary Action"
-                      className={`h-7 min-w-0 flex-1 px-2 text-[10px] font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                        isMatched
-                          ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                          : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                      }`}
-                      disabled={!isMatched}
-                    >
-                      Summary
-                    </LoadingButton>
-                    <LoadingButton
-                      isLoading={false}
-                      loadingText="..."
-                      variant="outline"
-                      aria-label="Trigger Summary Action"
-                      className={`h-7 min-w-0 flex-1 px-2 text-[10px] font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                        isMatched
-                          ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                          : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                      }`}
-                      onClick={isMatched ? handleDetailsClick : undefined}
-                      disabled={!isMatched || isDetailsLoading}
-                    >
-                      Details
-                    </LoadingButton>
-                  </>
-                )}
-              </>
-            )}
+          <div className="absolute top-1 right-1 z-10">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 rounded-full p-0 hover:bg-gray-200/80"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="h-3 w-3 text-gray-600" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleCreateIncident}>Create Incident Ticket</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </CardContent>
-      </Card>
+
+          <CardHeader className="p-2">
+            <CardTitle
+              className="text-center font-bold whitespace-nowrap overflow-hidden text-ellipsis"
+              style={{ fontSize: `${fontSize}px` }}
+            >
+              {data.title}
+            </CardTitle>
+            <p
+              className="text-muted-foreground text-center overflow-hidden text-ellipsis"
+              style={{ fontSize: `${fontSize * 0.83}px` }}
+            >
+              {data.subtext}
+            </p>
+          </CardHeader>
+
+          <CardContent className="p-2 pt-0">
+            <div className="flex gap-1 transition-all duration-200">
+              {!isAuthorized ? (
+                <>
+                  <LoadingButton
+                    isLoading={inLoadingMode}
+                    loadingText="..."
+                    variant="outline"
+                    style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                    className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
+                      inResultsMode && isMatched
+                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                        : inResultsMode && !isMatched
+                          ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
+                          : "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                    }`}
+                    disabled={!isMatched}
+                  >
+                    Summary
+                  </LoadingButton>
+                  <LoadingButton
+                    isLoading={true}
+                    loadingText="..."
+                    variant="outline"
+                    style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                    className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
+                      inResultsMode && isMatched
+                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                        : inResultsMode && !isMatched
+                          ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
+                          : "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                    }`}
+                    onClick={inResultsMode && isMatched ? handleDetailsClick : undefined}
+                    disabled={!isMatched || isDetailsLoading}
+                  >
+                    Details
+                  </LoadingButton>
+                </>
+              ) : (
+                <>
+                  {inDefaultMode && (
+                    <>
+                      <LoadingButton
+                        isLoading={isFetching}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        className={`min-w-0 flex-1 px-2 text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
+                          isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          triggerAction("flow")
+                        }}
+                        disabled={trafficStatusColorClass === "bg-gray-400"}
+                      >
+                        Flow
+                      </LoadingButton>
+                      <LoadingButton
+                        isLoading={isFetching}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        className={`min-w-0 flex-1 px-2 text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
+                          isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          triggerAction("trend")
+                        }}
+                        disabled={trendColorClass === "bg-gray-400"}
+                      >
+                        Trend
+                      </LoadingButton>
+                      <LoadingButton
+                        isLoading={isFetching}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        className="min-w-0 flex-1 px-2 font-medium text-white shadow-sm rounded-md border-0 bg-slate-500 hover:bg-slate-600 hover:scale-105 transition-all duration-200"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          triggerAction("balanced")
+                        }}
+                        disabled={trendColorClass === "bg-gray-400"}
+                      >
+                        Balanced
+                      </LoadingButton>
+                    </>
+                  )}
+
+                  {inLoadingMode && (
+                    <>
+                      <LoadingButton
+                        isLoading={true}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        aria-label="Trigger Summary Action"
+                        className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-medium text-white shadow-sm rounded-md hover:bg-blue-600 transition-all duration-200"
+                      >
+                        Summary
+                      </LoadingButton>
+                      <LoadingButton
+                        isLoading={true}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        aria-label="Trigger Details Action"
+                        className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-medium text-white shadow-sm rounded-md hover:bg-blue-600 transition-all duration-200"
+                      >
+                        Details
+                      </LoadingButton>
+                    </>
+                  )}
+
+                  {inResultsMode && (
+                    <>
+                      <LoadingButton
+                        isLoading={false}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        aria-label="Trigger Summary Action"
+                        className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
+                          isMatched
+                            ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                            : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
+                        }`}
+                        disabled={!isMatched}
+                      >
+                        Summary
+                      </LoadingButton>
+                      <LoadingButton
+                        isLoading={false}
+                        loadingText="..."
+                        variant="outline"
+                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
+                        aria-label="Trigger Summary Action"
+                        className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
+                          isMatched
+                            ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                            : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
+                        }`}
+                        onClick={isMatched ? handleDetailsClick : undefined}
+                        disabled={!isMatched || isDetailsLoading}
+                      >
+                        Details
+                      </LoadingButton>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {data.isSelected && (
+          <>
+            {/* Corner handles */}
+            <div
+              className="nodrag absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "nw")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize from top-left corner"
+            />
+            <div
+              className="nodrag absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "ne")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize from top-right corner"
+            />
+            <div
+              className="nodrag absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "sw")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize from bottom-left corner"
+            />
+            <div
+              className="nodrag absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "se")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize from bottom-right corner"
+            />
+
+            {/* Edge handles */}
+            <div
+              className="nodrag absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "n")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize height from top"
+            />
+            <div
+              className="nodrag absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "s")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize height from bottom"
+            />
+            <div
+              className="nodrag absolute top-1/2 -translate-y-1/2 -left-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "w")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize width from left"
+            />
+            <div
+              className="nodrag absolute top-1/2 -translate-y-1/2 -right-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
+              onMouseDown={(e) => handleResizeStart(e, "e")}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Resize width from right"
+            />
+          </>
+        )}
+      </div>
 
       <IncidentSheet
         isOpen={isIncidentSheetOpen}

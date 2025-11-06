@@ -23,7 +23,7 @@ import {
   useStore,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { AlertCircle, Loader2, RefreshCw } from "lucide-react"
+import { AlertCircle, Loader2, RefreshCw, Save, Check } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -38,6 +38,7 @@ import { TransactionDetailsTableAgGrid } from "@/domains/payment-health/componen
 import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
+import { useFlowSaveManager } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -250,6 +251,30 @@ const Flow = ({
       })
       .sort()
   }, [selectedNodeId, connectedNodeIds, nodes])
+
+  const { pendingCount, isSaving, lastSaveTime, saveError, saveAll, clearError } = useFlowSaveManager()
+
+  const handleSave = async () => {
+    const result = await saveAll()
+
+    if (result.success) {
+      toast.success("Changes saved successfully!", {
+        description: `${result.updatedNodes?.length || 0} node(s) updated`,
+        icon: <Check className="h-4 w-4 text-green-500" />,
+      })
+    } else if (result.conflicts) {
+      toast.error("Save conflicts detected", {
+        description: "Please refresh the page and try again",
+        icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+      })
+    } else {
+      toast.error("Failed to save changes", {
+        description: result.error || "Please try again",
+        icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+      })
+    }
+  }
+
   useEffect(() => {
     if (width > 0) {
       setNodes((currentNodes) => {
@@ -519,9 +544,38 @@ const Flow = ({
         <>
           {/* Refresh Data Button - Icon only, docked top-right */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-            {lastRefetch && !isFetching && (
-              <span className="text-muted-foreground text-xs">Last updated: {lastRefetch.toLocaleTimeString()}</span>
+            {lastSaveTime && !isSaving && pendingCount === 0 && (
+              <span className="text-muted-foreground text-xs">Saved: {lastSaveTime.toLocaleTimeString()}</span>
             )}
+            {lastRefetch && !isFetching && (
+              <span className="text-muted-foreground text-xs">Data updated: {lastRefetch.toLocaleTimeString()}</span>
+            )}
+
+            {/* Save Button */}
+            {pendingCount > 0 && (
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                variant="default"
+                size="sm"
+                className="h-8 gap-2 bg-blue-600 shadow-sm hover:bg-blue-700"
+                title={`Save ${pendingCount} pending change(s)`}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save ({pendingCount})
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Refresh Button */}
             <Button
               onClick={handleRefetch}
               disabled={isFetching}
@@ -534,6 +588,22 @@ const Flow = ({
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
             </Button>
           </div>
+
+          {saveError && (
+            <div className="absolute top-16 right-4 z-20 max-w-sm rounded-lg border border-red-200 bg-red-50 p-3 shadow-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-800">Save Error</p>
+                  <p className="text-xs text-red-600 mt-1">{saveError}</p>
+                </div>
+                <button onClick={clearError} className="text-red-400 hover:text-red-600" aria-label="Dismiss error">
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+
           <ReactFlow
             nodes={nodesForFlow}
             edges={edgesForFlow}

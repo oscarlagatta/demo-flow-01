@@ -5,6 +5,7 @@ import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet" // Fixed import path for IncidentSheet
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -19,8 +20,8 @@ import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 
 import { MoreVertical } from "lucide-react"
 
-import { IncidentSheet } from "../../../sheets/incident-sheet"
-import { Button } from "@/components/ui/button"
+import { NodeToolbar } from "./node-toolbar"
+
 import type { CustomNodeData } from "@/types/custom-node-data" // Import CustomNodeData
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 
@@ -278,6 +279,26 @@ const CustomNodeUsWires = ({
     onHideSearch()
   }
 
+  const handleAddNode = () => {
+    console.log("[v0] Add node clicked for:", id)
+    // TODO: Implement add node logic
+  }
+
+  const handleToggleExpand = () => {
+    console.log("[v0] Toggle expand clicked for:", id)
+    // TODO: Implement expand/collapse logic
+  }
+
+  const handleDeleteNode = () => {
+    console.log("[v0] Delete node clicked for:", id)
+    // TODO: Implement delete node logic
+  }
+
+  const handleEditNode = () => {
+    console.log("[v0] Edit node clicked for:", id)
+    // TODO: Implement edit node logic
+  }
+
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />
   }
@@ -294,6 +315,15 @@ const CustomNodeUsWires = ({
   return (
     <>
       <div ref={nodeRef} className="relative group" style={{ width: dimensions.width, height: dimensions.height }}>
+        {data.isSelected && (
+          <NodeToolbar
+            onAddNode={handleAddNode}
+            onToggleExpand={handleToggleExpand}
+            onDelete={handleDeleteNode}
+            onEdit={handleEditNode}
+          />
+        )}
+
         <Card
           className={getCardClassName()}
           style={{ width: "100%", height: "100%" }}
@@ -308,14 +338,14 @@ const CustomNodeUsWires = ({
           <div className="absolute top-1 right-1 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
+                <button
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 rounded-full p-0 hover:bg-gray-200/80"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="h-3 w-3 text-gray-600" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={handleCreateIncident}>Create Incident Ticket</DropdownMenuItem>
@@ -495,61 +525,57 @@ const CustomNodeUsWires = ({
           </CardContent>
         </Card>
 
-        {data.isSelected && (
-          <>
-            {/* Corner handles */}
-            <div
-              className="nodrag absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "nw")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize from top-left corner"
-            />
-            <div
-              className="nodrag absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "ne")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize from top-right corner"
-            />
-            <div
-              className="nodrag absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "sw")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize from bottom-left corner"
-            />
-            <div
-              className="nodrag absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "se")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize from bottom-right corner"
-            />
+        {/* Corner handles */}
+        <div
+          className="nodrag absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "nw")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize from top-left corner"
+        />
+        <div
+          className="nodrag absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "ne")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize from top-right corner"
+        />
+        <div
+          className="nodrag absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "sw")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize from bottom-left corner"
+        />
+        <div
+          className="nodrag absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "se")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize from bottom-right corner"
+        />
 
-            {/* Edge handles */}
-            <div
-              className="nodrag absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "n")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize height from top"
-            />
-            <div
-              className="nodrag absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "s")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize height from bottom"
-            />
-            <div
-              className="nodrag absolute top-1/2 -translate-y-1/2 -left-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "w")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize width from left"
-            />
-            <div
-              className="nodrag absolute top-1/2 -translate-y-1/2 -right-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
-              onMouseDown={(e) => handleResizeStart(e, "e")}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Resize width from right"
-            />
-          </>
-        )}
+        {/* Edge handles */}
+        <div
+          className="nodrag absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "n")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize height from top"
+        />
+        <div
+          className="nodrag absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "s")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize height from bottom"
+        />
+        <div
+          className="nodrag absolute top-1/2 -translate-y-1/2 -left-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "w")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize width from left"
+        />
+        <div
+          className="nodrag absolute top-1/2 -translate-y-1/2 -right-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "e")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize width from right"
+        />
       </div>
 
       <IncidentSheet

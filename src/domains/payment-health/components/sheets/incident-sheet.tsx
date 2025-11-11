@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,16 +21,34 @@ interface IncidentSheetProps {
   onClose: () => void
   nodeTitle: string
   aitId: string
+  transactionId?: string
 }
 
-export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentSheetProps) {
+export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId }: IncidentSheetProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const generateDefaultSubject = () => {
+    if (transactionId) {
+      return `Please investigate Payment ${transactionId} for CPO API Gateway (${aitId})`
+    }
+    return `Issue with ${nodeTitle} (${aitId})`
+  }
+
   const [formData, setFormData] = useState({
-    subject: `Issue with ${nodeTitle} (${aitId})`,
+    subject: generateDefaultSubject(),
     severity: "medium",
     description: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        subject: generateDefaultSubject(),
+      }))
+    }
+  }, [isOpen, transactionId, aitId, nodeTitle])
 
   const aitNumber = Number.parseInt(aitId.replace("AIT ", ""), 10)
   const {
@@ -77,7 +95,6 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
     }
 
     if (!umidData?.umid) {
-      // Show a confirmation toast but allow the user to proceed
       toast.warning("Creating ticket without UMID data", {
         description: "The incident ticket will be created without UMID information.",
       })
@@ -88,7 +105,7 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
       await createIncident({
         subject: formData.subject,
         severity: formData.severity,
-        umid: umidData?.umid || null, // Allow null UMID
+        umid: umidData?.umid || null,
         description: formData.description,
       })
 
@@ -101,9 +118,8 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
         icon: <RefreshCw className="h-4 w-4 text-green-500" />,
       })
 
-      // Reset form
       setFormData({
-        subject: `Issue with ${nodeTitle} (${aitId})`,
+        subject: generateDefaultSubject(),
         severity: "medium",
         description: "",
       })
@@ -120,7 +136,7 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
 
   const handleCancel = () => {
     setFormData({
-      subject: `Issue with ${nodeTitle} (${aitId})`,
+      subject: generateDefaultSubject(),
       severity: "medium",
       description: "",
     })
@@ -130,7 +146,6 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
     }
@@ -142,7 +157,9 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
         <SheetHeader>
           <SheetTitle>Create Incident Ticket</SheetTitle>
           <SheetDescription>
-            Create an incident ticket for {nodeTitle} ({aitId})
+            {transactionId
+              ? `Create an incident ticket for transaction ${transactionId} on ${nodeTitle} (${aitId})`
+              : `Create an incident ticket for ${nodeTitle} (${aitId})`}
           </SheetDescription>
         </SheetHeader>
 
@@ -157,6 +174,9 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId }: IncidentShe
               className={errors.subject ? "border-red-500" : ""}
             />
             {errors.subject && <p className="text-sm font-medium text-red-500">{errors.subject}</p>}
+            {transactionId && (
+              <p className="text-xs text-muted-foreground">Auto-populated with transaction ID from search</p>
+            )}
           </div>
 
           {isLoadingUmid && (

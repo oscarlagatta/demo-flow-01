@@ -4,8 +4,8 @@ import type React from "react"
 import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet" // Fixed import path for IncidentSheet
+import { Server } from "lucide-react"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -17,8 +17,6 @@ import {
 import { computeTrendColors, getTrendColorClass, type TrendColor } from "../../../../utils/trend-color-utils"
 import { LoadingButton } from "../../../loading/loading-button"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
-
-import { MoreVertical } from "lucide-react"
 
 import { NodeToolbar } from "./node-toolbar"
 
@@ -57,7 +55,13 @@ const CustomNodeUsWires = ({
     enabled: isAuthorized,
   })
 
-  const { active: txActive, isFetching: txFetching, matchedAitIds, showTable } = useTransactionSearchUsWiresContext()
+  const {
+    active: txActive,
+    isFetching: txFetching,
+    matchedAitIds,
+    showTable,
+    searchParams,
+  } = useTransactionSearchUsWiresContext()
 
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
@@ -284,19 +288,9 @@ const CustomNodeUsWires = ({
     // TODO: Implement add node logic
   }
 
-  const handleToggleExpand = () => {
-    console.log("[v0] Toggle expand clicked for:", id)
-    // TODO: Implement expand/collapse logic
-  }
-
   const handleDeleteNode = () => {
     console.log("[v0] Delete node clicked for:", id)
     // TODO: Implement delete node logic
-  }
-
-  const handleEditNode = () => {
-    console.log("[v0] Edit node clicked for:", id)
-    // TODO: Implement edit node logic
   }
 
   if (isLoading) {
@@ -316,12 +310,7 @@ const CustomNodeUsWires = ({
     <>
       <div ref={nodeRef} className="relative group" style={{ width: dimensions.width, height: dimensions.height }}>
         {data.isSelected && (
-          <NodeToolbar
-            onAddNode={handleAddNode}
-            onToggleExpand={handleToggleExpand}
-            onDelete={handleDeleteNode}
-            onEdit={handleEditNode}
-          />
+          <NodeToolbar onAddNode={handleAddNode} onCreateIncident={handleCreateIncident} onDelete={handleDeleteNode} />
         )}
 
         <Card
@@ -335,41 +324,46 @@ const CustomNodeUsWires = ({
           <Handle type="source" position={Position.Top} className="h-2 w-2 !bg-gray-400" />
           <Handle type="source" position={Position.Bottom} className="h-2 w-2 !bg-gray-400" />
 
-          <div className="absolute top-1 right-1 z-10">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 rounded-full p-0 hover:bg-gray-200/80"
-                  onClick={(e) => e.stopPropagation()}
+          <CardHeader className="p-3 pb-2 space-y-0">
+            {/* Title row with server icon and signal strength */}
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Server className="h-4 w-4 text-gray-700 flex-shrink-0" />
+                <CardTitle
+                  className="font-bold whitespace-nowrap overflow-hidden text-ellipsis"
+                  style={{ fontSize: `${fontSize}px` }}
                 >
-                  <MoreVertical className="h-3 w-3 text-gray-600" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleCreateIncident}>Create Incident Ticket</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  {data.title}
+                </CardTitle>
+              </div>
+              {/* Signal strength indicator */}
+              <div className="flex gap-0.5 items-end">
+                {[1, 2, 3, 4].map((bar) => (
+                  <div
+                    key={bar}
+                    className={`w-1.5 rounded-sm ${
+                      trafficStatusColor === "green"
+                        ? "bg-green-500"
+                        : trafficStatusColor === "red"
+                          ? "bg-red-500"
+                          : "bg-gray-400"
+                    }`}
+                    style={{ height: `${bar * 2.5 + 3}px` }}
+                  />
+                ))}
+              </div>
+            </div>
 
-          <CardHeader className="p-2">
-            <CardTitle
-              className="text-center font-bold whitespace-nowrap overflow-hidden text-ellipsis"
-              style={{ fontSize: `${fontSize}px` }}
-            >
-              {data.title}
-            </CardTitle>
-            <p
-              className="text-muted-foreground text-center overflow-hidden text-ellipsis"
-              style={{ fontSize: `${fontSize * 0.83}px` }}
-            >
+            {/* ATM number - directly below title */}
+            <p className="text-muted-foreground text-xs mb-2" style={{ fontSize: `${fontSize * 0.85}px` }}>
               {data.subtext}
             </p>
+
+            <div className="border-b border-gray-200 mb-2" />
           </CardHeader>
 
-          <CardContent className="p-2 pt-0">
-            <div className="flex gap-1 transition-all duration-200">
+          <CardContent className="p-3 pt-0">
+            <div className="flex gap-1.5 transition-all duration-200">
               {!isAuthorized ? (
                 <>
                   <LoadingButton
@@ -583,6 +577,7 @@ const CustomNodeUsWires = ({
         onClose={() => setIsIncidentSheetOpen(false)}
         nodeTitle={data.title}
         aitId={data.subtext}
+        transactionId={searchParams?.transactionId}
       />
     </>
   )

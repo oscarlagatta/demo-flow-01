@@ -5,7 +5,7 @@ import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
-import { AlertTriangle, Clock } from "lucide-react"
+import { Clock } from "lucide-react"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -22,6 +22,7 @@ import { NodeToolbar } from "./node-toolbar"
 
 import type { CustomNodeData } from "@/types/custom-node-data"
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
+import { getNodeIcon, getNodeIconColor, type NodeCategory } from "@/domains/payment-health/utils/node-icon-mapping"
 
 const RESIZE_CONSTRAINTS = {
   minWidth: 150,
@@ -246,6 +247,29 @@ const CustomNodeUsWires = ({
     console.log("[v0] Delete node clicked for:", id)
   }
 
+  const NodeIcon = useMemo(() => {
+    if (data.icon) {
+      // If icon is directly provided in data, use it
+      if (typeof data.icon === "string") {
+        // If it's a string, treat it as a category and map it with section context
+        return getNodeIcon(data.title, data.icon as NodeCategory, data.parentId)
+      }
+      // Otherwise it's already a Lucide icon component
+      return data.icon
+    }
+    // Fall back to automatic mapping based on title and section
+    return getNodeIcon(data.title, undefined, data.parentId)
+  }, [data.icon, data.title, data.parentId])
+
+  const iconColorClass = useMemo(() => {
+    if (data.iconColor) {
+      return data.iconColor
+    }
+    // Auto-determine color based on category or section
+    const category = data.icon && typeof data.icon === "string" ? (data.icon as NodeCategory) : undefined
+    return getNodeIconColor(category, data.parentId)
+  }, [data.icon, data.iconColor, data.parentId])
+
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />
   }
@@ -280,7 +304,7 @@ const CustomNodeUsWires = ({
           <CardHeader className="p-2 pb-1.5 space-y-0">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
-                <AlertTriangle className="h-4 w-4 text-blue-700 flex-shrink-0" strokeWidth={2.5} />
+                <NodeIcon className={`h-4 w-4 flex-shrink-0 ${iconColorClass}`} strokeWidth={2.5} />
                 <CardTitle
                   className="font-bold text-gray-900 leading-none truncate"
                   style={{ fontSize: `${Math.max(13, fontSize * 1.1)}px` }}

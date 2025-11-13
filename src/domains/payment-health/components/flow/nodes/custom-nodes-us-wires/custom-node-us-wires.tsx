@@ -252,14 +252,14 @@ const CustomNodeUsWires = ({
       // If icon is directly provided in data, use it
       if (typeof data.icon === "string") {
         // If it's a string, treat it as a category and map it with section context
-        return getNodeIcon(data.title, data.icon as NodeCategory, data.parentId)
+        return getNodeIcon(data.icon as NodeCategory, data.parentId)
       }
       // Otherwise it's already a Lucide icon component
       return data.icon
     }
-    // Fall back to automatic mapping based on title and section
-    return getNodeIcon(data.title, undefined, data.parentId)
-  }, [data.icon, data.title, data.parentId])
+    // Fall back to automatic mapping based on section only
+    return getNodeIcon(undefined, data.parentId)
+  }, [data.icon, data.parentId])
 
   const iconColorClass = useMemo(() => {
     if (data.iconColor) {

@@ -46,38 +46,6 @@ export const SECTION_CATEGORY_MAP: Record<SectionId, NodeCategory> = {
   "bg-processing": "processing",
 }
 
-export const NODE_TITLE_CATEGORY_MAP: Record<string, NodeCategory> = {
-  // Validation nodes
-  "CPO API Gateway": "validation",
-  "Fraud Scoring": "security",
-  "Sanctions Screening": "security",
-
-  // Processing nodes
-  "Payment Processing": "processing",
-  "Settlement Engine": "processing",
-  "Transaction Router": "processing",
-
-  // Database nodes
-  "Transaction DB": "database",
-  "Audit Log": "database",
-
-  // Middleware nodes
-  WTX: "middleware",
-  "Message Queue": "middleware",
-  "ESB Gateway": "middleware",
-
-  // Monitoring nodes
-  "Health Monitor": "monitoring",
-  "Performance Tracker": "monitoring",
-
-  // Reporting nodes
-  "Case Management": "reporting",
-  "Compliance Reports": "reporting",
-
-  "Payment Originator": "origination",
-  "Transaction Initiator": "origination",
-}
-
 /**
  * Get category from section ID
  * @param sectionId - The parent section ID
@@ -89,26 +57,19 @@ export function getCategoryFromSection(sectionId?: string): NodeCategory | undef
 }
 
 /**
- * Get the appropriate icon for a node based on its title, category, or section
- * Priority: explicit category > title mapping > section mapping > default
- * @param title - The node title
+ * Get the appropriate icon for a node based on its section or explicit category
+ * Priority: explicit category > section mapping > default
  * @param category - Optional explicit category
  * @param sectionId - Optional parent section ID for section-based icon assignment
  * @returns The Lucide icon component to render
  */
-export function getNodeIcon(title: string, category?: NodeCategory, sectionId?: string): LucideIcon {
+export function getNodeIcon(category?: NodeCategory, sectionId?: string): LucideIcon {
   // Priority 1: If explicit category provided, use it
   if (category && NODE_ICON_MAP[category]) {
     return NODE_ICON_MAP[category]
   }
 
-  // Priority 2: Try to map from title
-  const mappedCategory = NODE_TITLE_CATEGORY_MAP[title]
-  if (mappedCategory && NODE_ICON_MAP[mappedCategory]) {
-    return NODE_ICON_MAP[mappedCategory]
-  }
-
-  // Priority 3: Try to map from section ID
+  // Priority 2: Try to map from section ID
   const sectionCategory = getCategoryFromSection(sectionId)
   if (sectionCategory && NODE_ICON_MAP[sectionCategory]) {
     return NODE_ICON_MAP[sectionCategory]
@@ -141,16 +102,6 @@ export function getNodeIconColor(category?: NodeCategory, sectionId?: string): s
   // Use provided category or derive from section
   const resolvedCategory = category || getCategoryFromSection(sectionId)
   return resolvedCategory ? colorMap[resolvedCategory] : colorMap.default
-}
-
-/**
- * Register a new node type with its icon mapping
- * This allows for runtime extension of the icon system
- * @param title - The node title to register
- * @param category - The category to assign
- */
-export function registerNodeIcon(title: string, category: NodeCategory): void {
-  NODE_TITLE_CATEGORY_MAP[title] = category
 }
 
 /**

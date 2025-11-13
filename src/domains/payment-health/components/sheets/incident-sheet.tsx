@@ -36,8 +36,11 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
 
   const [formData, setFormData] = useState({
     subject: generateDefaultSubject(),
-    severity: "medium",
+    severity: "3", // Default severity set to 3
     description: "",
+    type: "E2E Auto Ticket", // Default type
+    boaEventType: "Warning", // Default BOA EventType
+    boaWikiId: "", // Left blank by default
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -102,16 +105,23 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
 
     setIsSubmitting(true)
     try {
-      await createIncident({
+      const incidentDetails = {
         subject: formData.subject,
         severity: formData.severity,
         umid: umidData?.umid || null,
         description: formData.description,
-      })
+        type: formData.type,
+        boaEventType: formData.boaEventType,
+        boaWikiId: formData.boaWikiId,
+        // Append UMID to description for key information
+        fullDescription: `${formData.description}\n\nKey Information:\nUMID: ${umidData?.umid || "Not Available"}\nType: ${formData.type}\nBOA EventType: ${formData.boaEventType}\nBOA Wiki ID: ${formData.boaWikiId || "N/A"}`,
+      }
+
+      await createIncident(incidentDetails)
 
       const successMessage = umidData?.umid
-        ? `Ticket created for ${nodeTitle} with ${formData.severity} severity. UMID: ${umidData.umid}`
-        : `Ticket created for ${nodeTitle} with ${formData.severity} severity.`
+        ? `Ticket created for ${nodeTitle} with severity ${formData.severity}. UMID: ${umidData.umid}`
+        : `Ticket created for ${nodeTitle} with severity ${formData.severity}.`
 
       toast.success("Incident Ticket Created!", {
         description: successMessage,
@@ -120,8 +130,11 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
 
       setFormData({
         subject: generateDefaultSubject(),
-        severity: "medium",
+        severity: "3",
         description: "",
+        type: "E2E Auto Ticket",
+        boaEventType: "Warning",
+        boaWikiId: "",
       })
       setErrors({})
       onClose()
@@ -137,8 +150,11 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
   const handleCancel = () => {
     setFormData({
       subject: generateDefaultSubject(),
-      severity: "medium",
+      severity: "3",
       description: "",
+      type: "E2E Auto Ticket",
+      boaEventType: "Warning",
+      boaWikiId: "",
     })
     setErrors({})
     onClose()
@@ -153,7 +169,7 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-[500px] max-w-[800px] sm:w-[700px] sm:max-w-[900px]">
+      <SheetContent side="right" className="w-[500px] max-w-[800px] sm:w-[700px] sm:max-w-[900px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Create Incident Ticket</SheetTitle>
           <SheetDescription>
@@ -213,16 +229,6 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
                     The system could not retrieve UMID information for AIT {aitId}. This may occur if the transaction is
                     too recent or not yet processed.
                   </p>
-                  <div className="text-xs text-amber-600 space-y-1">
-                    <p>
-                      <strong>Next steps:</strong>
-                    </p>
-                    <ul className="list-disc list-inside space-y-0.5 ml-2">
-                      <li>Verify the AIT number is correct</li>
-                      <li>Wait a few minutes and try again</li>
-                      <li>You can still create the incident ticket manually</li>
-                    </ul>
-                  </div>
                 </div>
               </div>
             </div>
@@ -243,13 +249,51 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
                 <SelectValue placeholder="Select severity level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="1">1 - Critical</SelectItem>
+                <SelectItem value="2">2 - High</SelectItem>
+                <SelectItem value="3">3 - Medium</SelectItem>
+                <SelectItem value="4">4 - Low</SelectItem>
               </SelectContent>
             </Select>
             {errors.severity && <p className="text-sm font-medium text-red-500">{errors.severity}</p>}
+            <p className="text-xs text-muted-foreground">Default severity is set to 3 (Medium)</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="type">Type</Label>
+            <Input
+              id="type"
+              value={formData.type}
+              onChange={(e) => handleInputChange("type", e.target.value)}
+              className="bg-gray-50"
+            />
+            <p className="text-xs text-muted-foreground">Auto-populated as "E2E Auto Ticket"</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="boaEventType">BOA EventType</Label>
+            <Select value={formData.boaEventType} onValueChange={(value) => handleInputChange("boaEventType", value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select BOA EventType" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Warning">Warning</SelectItem>
+                <SelectItem value="Error">Error</SelectItem>
+                <SelectItem value="Info">Info</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Default is set to "Warning"</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="boaWikiId">BOA Wiki ID</Label>
+            <Input
+              id="boaWikiId"
+              placeholder="Enter BOA Wiki ID (optional)"
+              value={formData.boaWikiId}
+              onChange={(e) => handleInputChange("boaWikiId", e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">Optional field - leave blank if not applicable</p>
           </div>
 
           <div className="space-y-2">
@@ -262,6 +306,9 @@ export function IncidentSheet({ isOpen, onClose, nodeTitle, aitId, transactionId
               onChange={(e) => handleInputChange("description", e.target.value)}
             />
             {errors.description && <p className="text-sm font-medium text-red-500">{errors.description}</p>}
+            <p className="text-xs text-muted-foreground">
+              Your description will be appended with UMID and other key information
+            </p>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

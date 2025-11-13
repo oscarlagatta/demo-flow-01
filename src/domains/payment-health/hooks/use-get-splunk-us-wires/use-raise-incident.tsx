@@ -8,8 +8,12 @@ export function useIncidents() {
   const createIncident = async (data: {
     subject: string
     severity: string
-    umid: number
+    umid: number | null
     description: string
+    type: string
+    boaEventType: string
+    boaWikiId: string
+    fullDescription: string
   }) => {
     try {
       await createIncidentMutation.mutateAsync({

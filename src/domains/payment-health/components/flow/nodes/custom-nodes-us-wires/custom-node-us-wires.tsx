@@ -4,8 +4,8 @@ import type React from "react"
 import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet" // Fixed import path for IncidentSheet
-import { Server } from "lucide-react"
+import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
+import { AlertTriangle, Clock } from "lucide-react"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -20,14 +20,12 @@ import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 
 import { NodeToolbar } from "./node-toolbar"
 
-import type { CustomNodeData } from "@/types/custom-node-data" // Import CustomNodeData
+import type { CustomNodeData } from "@/types/custom-node-data"
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 
 const RESIZE_CONSTRAINTS = {
   minWidth: 150,
-  minHeight: 80,
   maxWidth: 400,
-  maxHeight: 200,
 }
 
 const CustomNodeUsWires = ({
@@ -37,11 +35,10 @@ const CustomNodeUsWires = ({
 }: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
   const [dimensions, setDimensions] = useState({
     width: 220,
-    height: 110,
   })
   const [isResizing, setIsResizing] = useState(false)
-  const [activeHandle, setActiveHandle] = useState<"nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w" | null>(null)
-  const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 })
+  const [activeHandle, setActiveHandle] = useState<"e" | "w" | null>(null)
+  const resizeStartRef = useRef({ x: 0, width: 0 })
   const nodeRef = useRef<HTMLDivElement>(null)
 
   const isAuthorized = true
@@ -86,19 +83,16 @@ const CustomNodeUsWires = ({
   const trafficStatusColorClass = getTrafficStatusColorClass(trafficStatusColor)
 
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w") => {
+    (e: React.MouseEvent, handle: "e" | "w") => {
       e.stopPropagation()
       e.preventDefault()
-      // Prevent React Flow from capturing this event
       e.nativeEvent.stopImmediatePropagation()
 
       setIsResizing(true)
       setActiveHandle(handle)
       resizeStartRef.current = {
         x: e.clientX,
-        y: e.clientY,
         width: dimensions.width,
-        height: dimensions.height,
       }
     },
     [dimensions],
@@ -110,29 +104,19 @@ const CustomNodeUsWires = ({
 
       requestAnimationFrame(() => {
         const deltaX = e.clientX - resizeStartRef.current.x
-        const deltaY = e.clientY - resizeStartRef.current.y
 
         let newWidth = resizeStartRef.current.width
-        let newHeight = resizeStartRef.current.height
 
-        // Calculate new dimensions based on handle position
-        if (activeHandle.includes("e")) {
+        if (activeHandle === "e") {
           newWidth = resizeStartRef.current.width + deltaX
-        } else if (activeHandle.includes("w")) {
+        } else if (activeHandle === "w") {
           newWidth = resizeStartRef.current.width - deltaX
         }
 
-        if (activeHandle.includes("s")) {
-          newHeight = resizeStartRef.current.height + deltaY
-        } else if (activeHandle.includes("n")) {
-          newHeight = resizeStartRef.current.height - deltaY
-        }
-
-        // Apply constraints
+        // Apply width constraints only
         newWidth = Math.max(RESIZE_CONSTRAINTS.minWidth, Math.min(RESIZE_CONSTRAINTS.maxWidth, newWidth))
-        newHeight = Math.max(RESIZE_CONSTRAINTS.minHeight, Math.min(RESIZE_CONSTRAINTS.maxHeight, newHeight))
 
-        setDimensions({ width: newWidth, height: newHeight })
+        setDimensions({ width: newWidth })
       })
     },
     [isResizing, activeHandle],
@@ -144,18 +128,7 @@ const CustomNodeUsWires = ({
     setIsResizing(false)
     setActiveHandle(null)
     document.body.style.cursor = "default"
-
-    // Queue with current position (x, y) - for now using 0, 0 as React Flow manages position
-    const queueDimensions = (width: number, height: number, x: number, y: number) => {
-      console.log("[v0] Dimensions queued after resize")
-    }
-
-    if (queueDimensions) {
-      queueDimensions(dimensions.width, dimensions.height, 0, 0)
-    } else {
-      console.warn("[v0] queueDimensions function not available")
-    }
-  }, [isResizing, dimensions])
+  }, [isResizing])
 
   const [isDetailsLoading, setIsDetailsLoading] = useState(false)
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = useState(false)
@@ -202,16 +175,14 @@ const CustomNodeUsWires = ({
   }
 
   const fontSize = Math.max(8, Math.min(12, dimensions.width / 20))
-  const buttonHeight = Math.max(24, Math.min(32, dimensions.height / 4))
+  const buttonHeight = 32 // Fixed button height for consistency
 
   const { loadDimensions } = useNodeResizePersistence({
     nodeId: id,
     onConflict: (serverVersion, clientVersion) => {
-      console.warn(`[v0] Dimension conflict for node ${id}. Server: ${serverVersion}, Client: ${clientVersion}`)
-      // Optionally reload dimensions from server
       loadDimensions().then((dims) => {
         if (dims) {
-          setDimensions({ width: dims.width, height: dims.height })
+          setDimensions({ width: dims.width })
         }
       })
     },
@@ -220,8 +191,7 @@ const CustomNodeUsWires = ({
   useEffect(() => {
     loadDimensions().then((dims) => {
       if (dims) {
-        console.log("[v0] Loaded saved dimensions for node:", id, dims)
-        setDimensions({ width: dims.width, height: dims.height })
+        setDimensions({ width: dims.width })
       }
     })
   }, [id, loadDimensions])
@@ -243,7 +213,7 @@ const CustomNodeUsWires = ({
     if (isResizing) {
       document.addEventListener("mousemove", handleResizeMove)
       document.addEventListener("mouseup", handleResizeEnd)
-      document.body.style.cursor = getCursorStyle(activeHandle)
+      document.body.style.cursor = activeHandle === "e" || activeHandle === "w" ? "ew-resize" : "default"
       document.body.style.userSelect = "none"
 
       return () => {
@@ -254,21 +224,6 @@ const CustomNodeUsWires = ({
       }
     }
   }, [isResizing, handleResizeMove, handleResizeEnd, activeHandle])
-
-  const getCursorStyle = (handle: "nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w" | null) => {
-    if (!handle) return "default"
-    const cursors: Record<"nw" | "ne" | "sw" | "se" | "n" | "s" | "e" | "w", string> = {
-      nw: "nwse-resize",
-      ne: "nesw-resize",
-      sw: "nesw-resize",
-      se: "nwse-resize",
-      n: "ns-resize",
-      s: "ns-resize",
-      e: "ew-resize",
-      w: "ew-resize",
-    }
-    return cursors[handle]
-  }
 
   const handleClick = () => {
     if (data.onClick && id && !isLoading && !isResizing) {
@@ -285,12 +240,10 @@ const CustomNodeUsWires = ({
 
   const handleAddNode = () => {
     console.log("[v0] Add node clicked for:", id)
-    // TODO: Implement add node logic
   }
 
   const handleDeleteNode = () => {
     console.log("[v0] Delete node clicked for:", id)
-    // TODO: Implement delete node logic
   }
 
   if (isLoading) {
@@ -308,14 +261,14 @@ const CustomNodeUsWires = ({
 
   return (
     <>
-      <div ref={nodeRef} className="relative group" style={{ width: dimensions.width, height: dimensions.height }}>
+      <div ref={nodeRef} className="relative group" style={{ width: dimensions.width }}>
         {data.isSelected && (
           <NodeToolbar onAddNode={handleAddNode} onCreateIncident={handleCreateIncident} onDelete={handleDeleteNode} />
         )}
 
         <Card
           className={getCardClassName()}
-          style={{ width: "100%", height: "100%" }}
+          style={{ width: "100%" }}
           onClick={handleClick}
           data-testid={`custom-node-${id}`}
         >
@@ -324,61 +277,126 @@ const CustomNodeUsWires = ({
           <Handle type="source" position={Position.Top} className="h-2 w-2 !bg-gray-400" />
           <Handle type="source" position={Position.Bottom} className="h-2 w-2 !bg-gray-400" />
 
-          <CardHeader className="p-3 pb-2 space-y-0">
-            {/* Title row with server icon and signal strength */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-gray-700 flex-shrink-0" />
+          <CardHeader className="p-2 pb-1.5 space-y-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <AlertTriangle className="h-4 w-4 text-blue-700 flex-shrink-0" strokeWidth={2.5} />
                 <CardTitle
-                  className="font-bold whitespace-nowrap overflow-hidden text-ellipsis"
-                  style={{ fontSize: `${fontSize}px` }}
+                  className="font-bold text-gray-900 leading-none truncate"
+                  style={{ fontSize: `${Math.max(13, fontSize * 1.1)}px` }}
                 >
                   {data.title}
                 </CardTitle>
               </div>
-              {/* Signal strength indicator */}
-              <div className="flex gap-0.5 items-end">
-                {[1, 2, 3, 4].map((bar) => (
-                  <div
-                    key={bar}
-                    className={`w-1.5 rounded-sm ${
-                      trafficStatusColor === "green"
-                        ? "bg-green-500"
-                        : trafficStatusColor === "red"
-                          ? "bg-red-500"
-                          : "bg-gray-400"
-                    }`}
-                    style={{ height: `${bar * 2.5 + 3}px` }}
-                  />
-                ))}
+
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Clock className="h-4 w-4 text-blue-700" strokeWidth={2.5} />
+                <span
+                  className="font-bold text-blue-700 leading-none"
+                  style={{ fontSize: `${Math.max(13, fontSize * 1.1)}px` }}
+                >
+                  3.2s
+                </span>
+              </div>
+            </div>
+            <div className="mt-1.5 border-t border-gray-300" />
+          </CardHeader>
+
+          <CardContent className="p-2 pt-1.5 flex flex-col justify-between min-h-[80px]">
+            <div className="flex flex-col justify-center gap-1.5 mb-auto">
+              <div className="flex items-start gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
+                <span
+                  className="text-gray-700 font-medium leading-tight"
+                  style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
+                >
+                  Fraud Scoring
+                </span>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
+                <span
+                  className="text-gray-700 font-medium leading-tight"
+                  style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
+                >
+                  Case Management
+                </span>
               </div>
             </div>
 
-            {/* ATM number - directly below title */}
-            <p className="text-muted-foreground text-xs mb-2" style={{ fontSize: `${fontSize * 0.85}px` }}>
-              {data.subtext}
-            </p>
-
-            <div className="border-b border-gray-200 mb-2" />
-          </CardHeader>
-
-          <CardContent className="p-3 pt-0">
-            <div className="flex gap-1.5 transition-all duration-200">
-              {!isAuthorized ? (
+            <div className="flex gap-1.5 mt-2">
+              {inDefaultMode && (
                 <>
                   <LoadingButton
-                    isLoading={inLoadingMode}
+                    isLoading={isFetching}
                     loadingText="..."
                     variant="outline"
-                    style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                    className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                      inResultsMode && isMatched
-                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                        : inResultsMode && !isMatched
-                          ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                          : "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
+                      isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
                     }`}
-                    disabled={!isMatched}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      triggerAction("flow")
+                    }}
+                    disabled={trafficStatusColorClass === "bg-gray-400"}
+                  >
+                    Flow
+                  </LoadingButton>
+                  <LoadingButton
+                    isLoading={isFetching}
+                    loadingText="..."
+                    variant="outline"
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
+                      isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      triggerAction("trend")
+                    }}
+                    disabled={trendColorClass === "bg-gray-400"}
+                  >
+                    Trend
+                  </LoadingButton>
+                  <LoadingButton
+                    isLoading={isFetching}
+                    loadingText="..."
+                    variant="outline"
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    className="min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border-0 bg-gray-400 hover:bg-gray-500 transition-all duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      triggerAction("balanced")
+                    }}
+                    disabled={trendColorClass === "bg-gray-400"}
+                  >
+                    Balanced
+                  </LoadingButton>
+                </>
+              )}
+
+              {inLoadingMode && (
+                <>
+                  <LoadingButton
+                    isLoading={true}
+                    loadingText="..."
+                    variant="outline"
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    aria-label="Trigger Summary Action"
+                    className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
                   >
                     Summary
                   </LoadingButton>
@@ -386,178 +404,63 @@ const CustomNodeUsWires = ({
                     isLoading={true}
                     loadingText="..."
                     variant="outline"
-                    style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                    className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                      inResultsMode && isMatched
-                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                        : inResultsMode && !isMatched
-                          ? "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                          : "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                    }`}
-                    onClick={inResultsMode && isMatched ? handleDetailsClick : undefined}
-                    disabled={!isMatched || isDetailsLoading}
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    aria-label="Trigger Details Action"
+                    className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
                   >
                     Details
                   </LoadingButton>
                 </>
-              ) : (
+              )}
+
+              {inResultsMode && (
                 <>
-                  {inDefaultMode && (
-                    <>
-                      <LoadingButton
-                        isLoading={isFetching}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        className={`min-w-0 flex-1 px-2 text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
-                          isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          triggerAction("flow")
-                        }}
-                        disabled={trafficStatusColorClass === "bg-gray-400"}
-                      >
-                        Flow
-                      </LoadingButton>
-                      <LoadingButton
-                        isLoading={isFetching}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        className={`min-w-0 flex-1 px-2 text-white shadow-sm rounded-md border-0 transition-all duration-200 ${
-                          isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          triggerAction("trend")
-                        }}
-                        disabled={trendColorClass === "bg-gray-400"}
-                      >
-                        Trend
-                      </LoadingButton>
-                      <LoadingButton
-                        isLoading={isFetching}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        className="min-w-0 flex-1 px-2 font-medium text-white shadow-sm rounded-md border-0 bg-slate-500 hover:bg-slate-600 hover:scale-105 transition-all duration-200"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          triggerAction("balanced")
-                        }}
-                        disabled={trendColorClass === "bg-gray-400"}
-                      >
-                        Balanced
-                      </LoadingButton>
-                    </>
-                  )}
-
-                  {inLoadingMode && (
-                    <>
-                      <LoadingButton
-                        isLoading={true}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        aria-label="Trigger Summary Action"
-                        className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-medium text-white shadow-sm rounded-md hover:bg-blue-600 transition-all duration-200"
-                      >
-                        Summary
-                      </LoadingButton>
-                      <LoadingButton
-                        isLoading={true}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        aria-label="Trigger Details Action"
-                        className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-medium text-white shadow-sm rounded-md hover:bg-blue-600 transition-all duration-200"
-                      >
-                        Details
-                      </LoadingButton>
-                    </>
-                  )}
-
-                  {inResultsMode && (
-                    <>
-                      <LoadingButton
-                        isLoading={false}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        aria-label="Trigger Summary Action"
-                        className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                          isMatched
-                            ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                            : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                        }`}
-                        disabled={!isMatched}
-                      >
-                        Summary
-                      </LoadingButton>
-                      <LoadingButton
-                        isLoading={false}
-                        loadingText="..."
-                        variant="outline"
-                        style={{ height: `${buttonHeight}px`, fontSize: `${fontSize * 0.83}px` }}
-                        aria-label="Trigger Summary Action"
-                        className={`min-w-0 flex-1 px-2 font-medium shadow-sm rounded-md border transition-all duration-200 ${
-                          isMatched
-                            ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                            : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                        }`}
-                        onClick={isMatched ? handleDetailsClick : undefined}
-                        disabled={!isMatched || isDetailsLoading}
-                      >
-                        Details
-                      </LoadingButton>
-                    </>
-                  )}
+                  <LoadingButton
+                    isLoading={false}
+                    loadingText="..."
+                    variant="outline"
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    aria-label="Trigger Summary Action"
+                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
+                      isMatched
+                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                        : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
+                    }`}
+                    disabled={!isMatched}
+                  >
+                    Summary
+                  </LoadingButton>
+                  <LoadingButton
+                    isLoading={false}
+                    loadingText="..."
+                    variant="outline"
+                    style={{
+                      height: `${buttonHeight}px`,
+                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
+                    }}
+                    aria-label="Trigger Summary Action"
+                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
+                      isMatched
+                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
+                        : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
+                    }`}
+                    onClick={isMatched ? handleDetailsClick : undefined}
+                    disabled={!isMatched || isDetailsLoading}
+                  >
+                    Details
+                  </LoadingButton>
                 </>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Corner handles */}
-        <div
-          className="nodrag absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-          onMouseDown={(e) => handleResizeStart(e, "nw")}
-          onPointerDown={(e) => e.stopPropagation()}
-          title="Resize from top-left corner"
-        />
-        <div
-          className="nodrag absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-          onMouseDown={(e) => handleResizeStart(e, "ne")}
-          onPointerDown={(e) => e.stopPropagation()}
-          title="Resize from top-right corner"
-        />
-        <div
-          className="nodrag absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nesw-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-          onMouseDown={(e) => handleResizeStart(e, "sw")}
-          onPointerDown={(e) => e.stopPropagation()}
-          title="Resize from bottom-left corner"
-        />
-        <div
-          className="nodrag absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border-2 border-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-nwse-resize z-20 shadow-lg hover:scale-125 hover:bg-blue-600"
-          onMouseDown={(e) => handleResizeStart(e, "se")}
-          onPointerDown={(e) => e.stopPropagation()}
-          title="Resize from bottom-right corner"
-        />
-
-        {/* Edge handles */}
-        <div
-          className="nodrag absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
-          onMouseDown={(e) => handleResizeStart(e, "n")}
-          onPointerDown={(e) => e.stopPropagation()}
-          title="Resize height from top"
-        />
-        <div
-          className="nodrag absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
-          onMouseDown={(e) => handleResizeStart(e, "s")}
-          onPointerDown={(e) => e.stopPropagation()}
-          title="Resize height from bottom"
-        />
         <div
           className="nodrag absolute top-1/2 -translate-y-1/2 -left-1 w-2 h-6 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ew-resize z-20 shadow-lg hover:bg-blue-600"
           onMouseDown={(e) => handleResizeStart(e, "w")}

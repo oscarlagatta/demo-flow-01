@@ -374,6 +374,11 @@ const Flow = ({
     [setEdges],
   )
 
+  const onConnect: OnConnect = useCallback(
+    (connection) => setEdges((eds) => addEdge(connection, eds)),
+    [setEdges],
+  )
+
   const nodesForFlow = useMemo(() => {
     return nodes.map((node) => {
       const isSelected = selectedNodeId === node.id

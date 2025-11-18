@@ -5,7 +5,7 @@ import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
-import { Clock } from "lucide-react"
+import { Clock } from 'lucide-react'
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -19,10 +19,12 @@ import { LoadingButton } from "../../../loading/loading-button"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 
 import { NodeToolbar } from "./node-toolbar"
+import { PositionDisplayOverlay } from "./position-display-overlay"
 
 import type { CustomNodeData } from "@/types/custom-node-data"
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { getNodeIcon, getNodeIconColor, type NodeCategory } from "@/domains/payment-health/utils/node-icon-mapping"
+import { useNodePosition } from "@/domains/payment-health/hooks/use-node-position"
 
 const RESIZE_CONSTRAINTS = {
   minWidth: 150,
@@ -41,6 +43,9 @@ const CustomNodeUsWires = ({
   const [activeHandle, setActiveHandle] = useState<"e" | "w" | null>(null)
   const resizeStartRef = useRef({ x: 0, width: 0 })
   const nodeRef = useRef<HTMLDivElement>(null)
+
+  const [isDragging, setIsDragging] = useState(false)
+  const [livePosition, setLivePosition] = useState({ x: 0, y: 0, width: 0, height: 0 })
 
   const isAuthorized = true
 
@@ -114,7 +119,6 @@ const CustomNodeUsWires = ({
           newWidth = resizeStartRef.current.width - deltaX
         }
 
-        // Apply width constraints only
         newWidth = Math.max(RESIZE_CONSTRAINTS.minWidth, Math.min(RESIZE_CONSTRAINTS.maxWidth, newWidth))
 
         setDimensions({ width: newWidth })
@@ -129,7 +133,15 @@ const CustomNodeUsWires = ({
     setIsResizing(false)
     setActiveHandle(null)
     document.body.style.cursor = "default"
-  }, [isResizing])
+    
+    const positionData = getCurrentPosition()
+    if (positionData) {
+      console.log("[v0] Current node state:", {
+        position: { x: positionData.x, y: positionData.y },
+        dimensions: { width: positionData.width, height: positionData.height },
+      })
+    }
+  }, [isResizing, getCurrentPosition])
 
   const [isDetailsLoading, setIsDetailsLoading] = useState(false)
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = useState(false)
@@ -189,58 +201,53 @@ const CustomNodeUsWires = ({
     },
   })
 
-  useEffect(() => {
-    loadDimensions().then((dims) => {
-      if (dims) {
-        setDimensions({ width: dims.width })
-      }
-    })
-  }, [id, loadDimensions])
+  const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
 
   useEffect(() => {
-    const errorHandler = (e: ErrorEvent) => {
-      if (e.message.includes("ResizeObserver loop")) {
-        e.stopImmediatePropagation()
+    if (data.isDragging !== undefined) {
+      setIsDragging(data.isDragging)
+      
+      if (data.isDragging) {
+        const positionData = getCurrentPosition()
+        if (positionData) {
+          setLivePosition({
+            x: positionData.x,
+            y: positionData.y,
+            width: positionData.width,
+            height: positionData.height || 0,
+          })
+        }
       }
     }
-    window.addEventListener("error", errorHandler)
+  }, [data.isDragging, getCurrentPosition])
 
-    return () => {
-      window.removeEventListener("error", errorHandler)
+  useEffect(() => {
+    if (isDragging && data.position) {
+      setLivePosition(prev => ({
+        ...prev,
+        x: data.position?.x || prev.x,
+        y: data.position?.y || prev.y,
+      }))
     }
-  }, [])
+  }, [isDragging, data.position])
 
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener("mousemove", handleResizeMove)
-      document.addEventListener("mouseup", handleResizeEnd)
-      document.body.style.cursor = activeHandle === "e" || activeHandle === "w" ? "ew-resize" : "default"
-      document.body.style.userSelect = "none"
-
-      return () => {
-        document.removeEventListener("mousemove", handleResizeMove)
-        document.removeEventListener("mouseup", handleResizeEnd)
-        document.body.style.cursor = "default"
-        document.body.style.userSelect = "auto"
+      const positionData = getCurrentPosition()
+      if (positionData) {
+        setLivePosition({
+          x: positionData.x,
+          y: positionData.y,
+          width: dimensions.width,
+          height: positionData.height || 0,
+        })
       }
     }
-  }, [isResizing, handleResizeMove, handleResizeEnd, activeHandle])
-
-  const handleClick = () => {
-    if (data.onClick && id && !isLoading && !isResizing) {
-      data.onClick(id)
-    }
-  }
-
-  const triggerAction = (action: "flow" | "trend" | "balanced") => {
-    if (!isLoading && !isFetching && aitNum && data.onActionClick) {
-      data.onActionClick(aitNum, action)
-    }
-    onHideSearch()
-  }
+  }, [isResizing, dimensions.width, getCurrentPosition])
 
   const handleAddNode = () => {
     console.log("[v0] Add node clicked for:", id)
+    logPosition()
   }
 
   const handleDeleteNode = () => {
@@ -249,15 +256,11 @@ const CustomNodeUsWires = ({
 
   const NodeIcon = useMemo(() => {
     if (data.icon) {
-      // If icon is directly provided in data, use it
       if (typeof data.icon === "string") {
-        // If it's a string, treat it as a category and map it with section context
         return getNodeIcon(data.icon as NodeCategory, data.parentId)
       }
-      // Otherwise it's already a Lucide icon component
       return data.icon
     }
-    // Fall back to automatic mapping based on section only
     return getNodeIcon(undefined, data.parentId)
   }, [data.icon, data.parentId])
 
@@ -265,7 +268,6 @@ const CustomNodeUsWires = ({
     if (data.iconColor) {
       return data.iconColor
     }
-    // Auto-determine color based on category or section
     const category = data.icon && typeof data.icon === "string" ? (data.icon as NodeCategory) : undefined
     return getNodeIconColor(category, data.parentId)
   }, [data.icon, data.iconColor, data.parentId])
@@ -286,6 +288,14 @@ const CustomNodeUsWires = ({
   return (
     <>
       <div ref={nodeRef} className="relative group" style={{ width: dimensions.width }}>
+        <PositionDisplayOverlay
+          x={livePosition.x}
+          y={livePosition.y}
+          width={livePosition.width}
+          height={livePosition.height}
+          isVisible={isDragging || isResizing}
+        />
+
         {data.isSelected && (
           <NodeToolbar onAddNode={handleAddNode} onCreateIncident={handleCreateIncident} onDelete={handleDeleteNode} />
         )}

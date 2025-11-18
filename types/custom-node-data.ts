@@ -14,4 +14,6 @@ export interface CustomNodeData {
   icon?: LucideIcon | string // Can be a Lucide icon component or a string identifier
   iconColor?: string // Optional color override for the icon
   parentId?: string // Added parentId for section-based icon mapping
+  isDragging?: boolean // Indicates if the node is currently being dragged
+  position?: { x: number; y: number } // Current position coordinates
 }

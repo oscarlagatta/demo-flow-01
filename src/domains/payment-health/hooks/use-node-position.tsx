@@ -21,18 +21,11 @@ export function useNodePosition(nodeId: string, nodeRef?: React.RefObject<HTMLEl
     const node = getNode(nodeId) as Node | undefined
     
     if (!node) {
-      console.warn(`[v0] Node ${nodeId} not found in React Flow state`)
       return null
     }
 
     const positionData = getNodePositionData(node, nodeRef?.current)
     lastPositionRef.current = positionData
-    
-    console.log("[v0] Node position retrieved:", {
-      nodeId,
-      position: { x: positionData.x, y: positionData.y },
-      dimensions: { width: positionData.width, height: positionData.height },
-    })
     
     return positionData
   }, [nodeId, getNode, nodeRef])

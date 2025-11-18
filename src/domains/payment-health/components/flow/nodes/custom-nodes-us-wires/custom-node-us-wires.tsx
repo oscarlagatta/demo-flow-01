@@ -66,6 +66,19 @@ const CustomNodeUsWires = ({
     searchParams,
   } = useTransactionSearchUsWiresContext()
 
+  const { loadDimensions } = useNodeResizePersistence({
+    nodeId: id,
+    onConflict: (serverVersion, clientVersion) => {
+      loadDimensions().then((dims) => {
+        if (dims) {
+          setDimensions({ width: dims.width })
+        }
+      })
+    },
+  })
+
+  const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
+
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
     return match ? match[1] : null
@@ -133,15 +146,7 @@ const CustomNodeUsWires = ({
     setIsResizing(false)
     setActiveHandle(null)
     document.body.style.cursor = "default"
-    
-    const positionData = getCurrentPosition()
-    if (positionData) {
-      console.log("[v0] Current node state:", {
-        position: { x: positionData.x, y: positionData.y },
-        dimensions: { width: positionData.width, height: positionData.height },
-      })
-    }
-  }, [isResizing, getCurrentPosition])
+  }, [isResizing])
 
   const [isDetailsLoading, setIsDetailsLoading] = useState(false)
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = useState(false)
@@ -188,20 +193,7 @@ const CustomNodeUsWires = ({
   }
 
   const fontSize = Math.max(8, Math.min(12, dimensions.width / 20))
-  const buttonHeight = 32 // Fixed button height for consistency
-
-  const { loadDimensions } = useNodeResizePersistence({
-    nodeId: id,
-    onConflict: (serverVersion, clientVersion) => {
-      loadDimensions().then((dims) => {
-        if (dims) {
-          setDimensions({ width: dims.width })
-        }
-      })
-    },
-  })
-
-  const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
+  const buttonHeight = 32
 
   useEffect(() => {
     if (data.isDragging !== undefined) {
@@ -209,12 +201,13 @@ const CustomNodeUsWires = ({
       
       if (data.isDragging) {
         const positionData = getCurrentPosition()
-        if (positionData) {
+        if (positionData && nodeRef.current) {
+          const rect = nodeRef.current.getBoundingClientRect()
           setLivePosition({
             x: positionData.x,
             y: positionData.y,
             width: positionData.width,
-            height: positionData.height || 0,
+            height: rect.height, // Get actual rendered height from DOM
           })
         }
       }
@@ -222,31 +215,47 @@ const CustomNodeUsWires = ({
   }, [data.isDragging, getCurrentPosition])
 
   useEffect(() => {
-    if (isDragging && data.position) {
+    if (isDragging && data.position && nodeRef.current) {
+      const rect = nodeRef.current.getBoundingClientRect()
       setLivePosition(prev => ({
-        ...prev,
         x: data.position?.x || prev.x,
         y: data.position?.y || prev.y,
+        width: dimensions.width,
+        height: rect.height, // Get actual rendered height from DOM
       }))
     }
-  }, [isDragging, data.position])
+  }, [isDragging, data.position, dimensions.width])
 
   useEffect(() => {
-    if (isResizing) {
+    if (isResizing && nodeRef.current) {
       const positionData = getCurrentPosition()
+      const rect = nodeRef.current.getBoundingClientRect()
       if (positionData) {
         setLivePosition({
           x: positionData.x,
           y: positionData.y,
           width: dimensions.width,
-          height: positionData.height || 0,
+          height: rect.height, // Get actual rendered height from DOM
         })
       }
     }
   }, [isResizing, dimensions.width, getCurrentPosition])
 
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleResizeMove)
+      document.addEventListener("mouseup", handleResizeEnd)
+      document.body.style.cursor = activeHandle === "e" || activeHandle === "w" ? "ew-resize" : "default"
+
+      return () => {
+        document.removeEventListener("mousemove", handleResizeMove)
+        document.removeEventListener("mouseup", handleResizeEnd)
+        document.body.style.cursor = "default"
+      }
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd, activeHandle])
+
   const handleAddNode = () => {
-    console.log("[v0] Add node clicked for:", id)
     logPosition()
   }
 
@@ -271,6 +280,25 @@ const CustomNodeUsWires = ({
     const category = data.icon && typeof data.icon === "string" ? (data.icon as NodeCategory) : undefined
     return getNodeIconColor(category, data.parentId)
   }, [data.icon, data.iconColor, data.parentId])
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Handle node click
+  }
+
+  const triggerAction = (action: string) => {
+    console.log("[v0] Action triggered:", action)
+  }
+
+  useEffect(() => {
+    const errorHandler = (e: ErrorEvent) => {
+      if (e.message.includes('ResizeObserver loop')) {
+        e.stopImmediatePropagation()
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('error', errorHandler)
+    return () => window.removeEventListener('error', errorHandler)
+  }, [])
 
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />

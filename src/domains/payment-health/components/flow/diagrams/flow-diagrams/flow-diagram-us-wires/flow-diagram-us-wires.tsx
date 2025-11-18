@@ -23,7 +23,7 @@ import {
   useStore,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { AlertCircle, Loader2, RefreshCw, Save, Check } from "lucide-react"
+import { AlertCircle, Loader2, RefreshCw, Save, Check } from 'lucide-react'
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -143,6 +143,7 @@ const Flow = ({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [connectedNodeIds, setConnectedNodeIds] = useState<Set<string>>(new Set())
   const [connectedEdgeIds, setConnectedEdgeIds] = useState<Set<string>>(new Set())
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null)
   const [lastRefetch, setLastRefetch] = useState<Date | null>(null)
   const [canvasHeight, setCanvasHeight] = useState<number>(500) // default height
   // Table mode state
@@ -348,40 +349,48 @@ const Flow = ({
     (changes: NodeChange<Node>[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes],
   )
+  
+  const onNodeDragStart = useCallback((_event: React.MouseEvent, node: Node) => {
+    setDraggingNodeId(node.id)
+  }, [])
+
+  const onNodeDrag = useCallback((_event: React.MouseEvent, node: Node) => {
+    // Update node position during drag
+    setNodes((nds) => 
+      nds.map((n) => 
+        n.id === node.id 
+          ? { ...n, position: node.position, data: { ...n.data, position: node.position } }
+          : n
+      )
+    )
+  }, [])
+
+  const onNodeDragStop = useCallback(() => {
+    setDraggingNodeId(null)
+  }, [])
+
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     [setEdges],
   )
-  const onConnect: OnConnect = useCallback(
-    (connection) =>
-      setEdges((eds) =>
-        addEdge(
-          {
-            ...connection,
-            type: "smoothstep",
-            markerStart: { type: MarkerType.ArrowClosed, color: "#6b7280" },
-            markerEnd: { type: MarkerType.ArrowClosed, color: "#6b7280" },
-            style: { strokeWidth: 2, stroke: "#6b7280" },
-          },
-          eds,
-        ),
-      ),
-    [setEdges],
-  )
+
   const nodesForFlow = useMemo(() => {
     return nodes.map((node) => {
       const isSelected = selectedNodeId === node.id
       const isConnected = connectedNodeIds.has(node.id)
       const isDimmed = selectedNodeId && !isSelected && !isConnected
+      const isDragging = draggingNodeId === node.id
 
       let nodeData = {
         ...node.data,
         isSelected,
         isConnected,
         isDimmed,
+        isDragging, // Pass drag state to node
+        position: node.position, // Pass current position to node
         onClick: handleNodeClick,
         onActionClick: handleActionClick,
-        isMonitorMode: isMonitorMode, // Pass isMonitorMode through data
+        isMonitorMode: isMonitorMode,
       }
 
       // Add processing time data for background nodes (sections)
@@ -610,6 +619,9 @@ const Flow = ({
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeDragStart={onNodeDragStart}
+            onNodeDrag={onNodeDrag}
+            onNodeDragStop={onNodeDragStop}
             nodeTypes={nodeTypes}
             proOptions={{ hideAttribution: true }}
             className="bg-white"

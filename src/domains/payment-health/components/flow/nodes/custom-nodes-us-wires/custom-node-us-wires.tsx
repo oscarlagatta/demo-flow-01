@@ -428,25 +428,16 @@ const CustomNodeUsWires = ({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col justify-center gap-1.5 mb-auto">
-                <div className="flex items-start gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
-                  <span
-                    className="text-gray-700 font-medium leading-tight"
-                    style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
-                  >
-                    Fraud Scoring
-                  </span>
-                </div>
-                <div className="flex items-start gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
-                  <span
-                    className="text-gray-700 font-medium leading-tight"
-                    style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
-                  >
-                    Case Management
-                  </span>
-                </div>
+              <div className="flex flex-col justify-center items-center gap-1.5 mb-auto py-2">
+                <span
+                  className="text-gray-500 text-center italic leading-tight"
+                  style={{ fontSize: `${Math.max(10, fontSize * 0.85)}px` }}
+                >
+                  {aitNum 
+                    ? `No data available for this AIT (${aitNum})`
+                    : 'No data available for this node'
+                  }
+                </span>
               </div>
             )}
 

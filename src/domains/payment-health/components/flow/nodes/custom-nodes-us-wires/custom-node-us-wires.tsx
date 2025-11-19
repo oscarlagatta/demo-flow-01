@@ -210,6 +210,29 @@ const CustomNodeUsWires = ({
   const fontSize = Math.max(8, Math.min(12, dimensions.width / 20))
   const buttonHeight = 32
 
+  const descriptionFontSize = useMemo(() => {
+    // Base font size increases with both width and height
+    const widthFactor = dimensions.width / 220  // 220 is the default width
+    const heightFactor = dimensions.height / 180 // 180 is the default height
+    const scaleFactor = Math.min(widthFactor, heightFactor) // Use the smaller factor to avoid text getting too large
+    
+    // Scale from 11px to 16px based on node size
+    const baseSize = 11
+    const maxSize = 16
+    const scaledSize = baseSize + (maxSize - baseSize) * (scaleFactor - 1) * 0.7
+    
+    return Math.max(10, Math.min(maxSize, scaledSize))
+  }, [dimensions.width, dimensions.height])
+
+  const noDataFontSize = useMemo(() => {
+    const scaleFactor = Math.min(dimensions.width / 220, dimensions.height / 180)
+    const baseSize = 10
+    const maxSize = 14
+    const scaledSize = baseSize + (maxSize - baseSize) * (scaleFactor - 1) * 0.7
+    
+    return Math.max(9, Math.min(maxSize, scaledSize))
+  }, [dimensions.width, dimensions.height])
+
   const descriptionItems = useMemo(() => {
     if (!data.descriptions) return []
     return data.descriptions
@@ -417,10 +440,16 @@ const CustomNodeUsWires = ({
               >
                 {descriptionItems.map((item, index) => (
                   <div key={index} className="flex items-start gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
+                    <div 
+                      className="rounded-full bg-gray-700 flex-shrink-0 mt-1" 
+                      style={{ 
+                        width: `${descriptionFontSize * 0.12}px`,
+                        height: `${descriptionFontSize * 0.12}px`
+                      }}
+                    />
                     <span
                       className="text-gray-700 font-medium leading-tight"
-                      style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
+                      style={{ fontSize: `${descriptionFontSize}px` }}
                     >
                       {item}
                     </span>
@@ -431,7 +460,7 @@ const CustomNodeUsWires = ({
               <div className="flex flex-col justify-center items-center gap-1.5 mb-auto py-2">
                 <span
                   className="text-gray-500 text-center italic leading-tight"
-                  style={{ fontSize: `${Math.max(10, fontSize * 0.85)}px` }}
+                  style={{ fontSize: `${noDataFontSize}px` }}
                 >
                   {aitNum 
                     ? `No data available for this AIT (${aitNum})`

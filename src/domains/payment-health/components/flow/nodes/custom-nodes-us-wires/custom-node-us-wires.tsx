@@ -2,10 +2,11 @@
 
 import type React from "react"
 import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
-import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals } from "@xyflow/react"
+import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals, useReactFlow } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
 import { Clock } from 'lucide-react'
+import { toast } from "sonner"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -19,12 +20,15 @@ import { LoadingButton } from "../../../loading/loading-button"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 
 import { NodeToolbar } from "./node-toolbar"
+import { NodeSaveToolbar } from "./node-save-toolbar"
 import { PositionDisplayOverlay } from "./position-display-overlay"
 
 import type { CustomNodeData } from "@/types/custom-node-data"
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { getNodeIcon, getNodeIconColor, type NodeCategory } from "@/domains/payment-health/utils/node-icon-mapping"
 import { useNodePosition } from "@/domains/payment-health/hooks/use-node-position"
+import { useRegionWireFlowPresenter } from "@/domains/payment-health/hooks/use-region-wire-flow-presenter"
+import type { E2ERegionWireFlowModel } from "@bofa/data-services"
 
 const RESIZE_CONSTRAINTS = {
   minWidth: 150,
@@ -33,12 +37,54 @@ const RESIZE_CONSTRAINTS = {
   maxHeight: 600,
 }
 
+const buildRegionWireFlowModel = (
+  node: Node<CustomNodeData>,
+  currentPosition: { x: number; y: number; width: number; height: number } | null,
+  connectedEdges: any[]
+): E2ERegionWireFlowModel => {
+  // Extract AIT number from subtext (e.g., "AIT 512" -> 512)
+  const aitMatch = node.data.subtext?.match(/AIT\s*(\d+)/)
+  const aitNumber = aitMatch ? Number.parseInt(aitMatch[1], 10) : undefined
+
+  // Build nodeFlows from connected edges
+  const nodeFlows = connectedEdges.map((edge) => ({
+    id: undefined, // Let the backend assign the ID
+    sourceId: Number.parseInt(edge.source, 10),
+    targetId: Number.parseInt(edge.target, 10),
+    sourceHandle: edge.sourceHandle || "Right",
+    targetHandle: edge.targetHandle || "Left",
+    label: edge.label || null,
+  }))
+
+  return {
+    id: node.id ? Number.parseInt(node.id, 10) : undefined,
+    region: "US", // Default region, could be extracted from data if available
+    area: node.data.parentId?.replace("bg-", "") || null, // Extract area from parent section
+    appId: aitNumber,
+    mappedAppId: node.data.subtext || null,
+    nodeWidth: currentPosition?.width || 180,
+    nodeHeight: currentPosition?.height || 90,
+    descriptions: node.data.descriptions || null,
+    xPosition: Math.round(currentPosition?.x || node.position.x),
+    yPosition: Math.round(currentPosition?.y || node.position.y),
+    appName: node.data.title || null,
+    nodeFlows: nodeFlows.length > 0 ? nodeFlows : null,
+    createdUserId: 408, // Default user ID, should come from auth context
+    updatedUserId: 408, // Default user ID, should come from auth context
+  }
+}
+
 const CustomNodeUsWires = ({
   data,
   id,
   onHideSearch,
 }: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
   const updateNodeInternals = useUpdateNodeInternals()
+  const { getNode, getEdges } = useReactFlow()
+  
+  const { handleUpdateRegionWireFlow } = useRegionWireFlowPresenter()
+  const [isSavingNode, setIsSavingNode] = useState(false)
+  
   const [dimensions, setDimensions] = useState({
     width: 220,
     height: 180,
@@ -52,6 +98,7 @@ const CustomNodeUsWires = ({
   const [livePosition, setLivePosition] = useState({ x: 0, y: 0, width: 0, height: 0 })
 
   const isAuthorized = true
+
 
   const {
     data: splunkData,
@@ -82,6 +129,50 @@ const CustomNodeUsWires = ({
   })
 
   const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
+
+
+  const handleSaveNode = useCallback(async () => {
+    try {
+      setIsSavingNode(true)
+      
+      // Get current node data
+      const currentNode = getNode(id)
+      if (!currentNode) {
+        throw new Error("Node not found")
+      }
+
+      // Get current position
+      const positionData = getCurrentPosition()
+      
+      // Get all edges connected to this node
+      const allEdges = getEdges()
+      const connectedEdges = allEdges.filter(
+        (edge) => edge.source === id || edge.target === id
+      )
+
+      // Build the E2ERegionWireFlowModel
+      const regionWireFlowModel = buildRegionWireFlowModel(
+        currentNode,
+        positionData,
+        connectedEdges
+      )
+
+      // Call the update handler
+      await handleUpdateRegionWireFlow(regionWireFlowModel)
+
+      toast.success("Node saved successfully!", {
+        description: `${data.title} has been updated`,
+      })
+    } catch (error) {
+      console.error("[v0] Failed to save node:", error)
+      toast.error("Failed to save node", {
+        description: error instanceof Error ? error.message : "Please try again",
+      })
+    } finally {
+      setIsSavingNode(false)
+    }
+  }, [id, data.title, getNode, getEdges, getCurrentPosition, handleUpdateRegionWireFlow])
+
 
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
@@ -223,23 +314,19 @@ const CustomNodeUsWires = ({
     const itemCount = descriptionItems.length
     if (itemCount === 0) return 1
     
-    // Use 2 columns if we have 4+ items and width is sufficient
     if (itemCount >= 4 && dimensions.width >= 280) return 2
     
-    // Use 3 columns only for 9+ items and very wide nodes
     if (itemCount >= 9 && dimensions.width >= 350) return 3
     
     return 1
   }, [descriptionItems.length, dimensions.width])
 
   const descriptionFontSize = useMemo(() => {
-    // Scale font size based on node width: 10px (min) to 14px (max)
     const baseSize = Math.max(10, Math.min(14, dimensions.width / 25))
     return baseSize
   }, [dimensions.width])
 
   const bulletSize = useMemo(() => {
-    // Scale bullet size proportionally with font size
     return Math.max(4, descriptionFontSize * 0.35)
   }, [descriptionFontSize])
 
@@ -376,6 +463,8 @@ const CustomNodeUsWires = ({
           height={livePosition.height}
           isVisible={isDragging || isResizing}
         />
+
+        <NodeSaveToolbar onSave={handleSaveNode} isSaving={isSavingNode} />
 
         {data.isSelected && (
           <NodeToolbar onAddNode={handleAddNode} onCreateIncident={handleCreateIncident} onDelete={handleDeleteNode} />

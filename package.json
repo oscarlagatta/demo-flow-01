@@ -18,6 +18,7 @@
     "@ag-grid-enterprise/menu": "latest",
     "@ag-grid-enterprise/set-filter": "latest",
     "@bofa/data-services": "latest",
+    "@bofa/shared-context": "latest",
     "@eslint/eslintrc": "latest",
     "@hey-api/client-axios": "latest",
     "@hey-api/openapi-ts": "latest",

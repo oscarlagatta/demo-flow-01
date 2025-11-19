@@ -208,30 +208,7 @@ const CustomNodeUsWires = ({
   }
 
   const fontSize = Math.max(8, Math.min(12, dimensions.width / 20))
-  const buttonHeight = 32
-
-  const descriptionFontSize = useMemo(() => {
-    // Base font size increases with both width and height
-    const widthFactor = dimensions.width / 220  // 220 is the default width
-    const heightFactor = dimensions.height / 180 // 180 is the default height
-    const scaleFactor = Math.min(widthFactor, heightFactor) // Use the smaller factor to avoid text getting too large
-    
-    // Scale from 11px to 16px based on node size
-    const baseSize = 11
-    const maxSize = 16
-    const scaledSize = baseSize + (maxSize - baseSize) * (scaleFactor - 1) * 0.7
-    
-    return Math.max(10, Math.min(maxSize, scaledSize))
-  }, [dimensions.width, dimensions.height])
-
-  const noDataFontSize = useMemo(() => {
-    const scaleFactor = Math.min(dimensions.width / 220, dimensions.height / 180)
-    const baseSize = 10
-    const maxSize = 14
-    const scaledSize = baseSize + (maxSize - baseSize) * (scaleFactor - 1) * 0.7
-    
-    return Math.max(9, Math.min(maxSize, scaledSize))
-  }, [dimensions.width, dimensions.height])
+  const buttonHeight = Math.max(28, Math.min(40, dimensions.height / 5))
 
   const descriptionItems = useMemo(() => {
     if (!data.descriptions) return []
@@ -254,6 +231,17 @@ const CustomNodeUsWires = ({
     
     return 1
   }, [descriptionItems.length, dimensions.width])
+
+  const descriptionFontSize = useMemo(() => {
+    // Scale font size based on node width: 10px (min) to 14px (max)
+    const baseSize = Math.max(10, Math.min(14, dimensions.width / 25))
+    return baseSize
+  }, [dimensions.width])
+
+  const bulletSize = useMemo(() => {
+    // Scale bullet size proportionally with font size
+    return Math.max(4, descriptionFontSize * 0.35)
+  }, [descriptionFontSize])
 
   useEffect(() => {
     if (data.isDragging !== undefined) {
@@ -429,26 +417,26 @@ const CustomNodeUsWires = ({
             <div className="mt-1.5 border-t border-gray-300" />
           </CardHeader>
 
-          <CardContent className="p-2 pt-1.5 flex flex-col justify-between min-h-[80px]">
+          <CardContent className="p-2 pt-1.5 flex flex-col min-h-[80px]">
             {data.descriptions && descriptionItems.length > 0 ? (
               <div 
-                className={`mb-auto grid gap-x-3 gap-y-1.5 ${
+                className={`flex-grow pl-2 grid gap-x-4 gap-y-2 ${
                   descriptionColumns === 3 ? 'grid-cols-3' : 
                   descriptionColumns === 2 ? 'grid-cols-2' : 
                   'grid-cols-1'
                 }`}
               >
                 {descriptionItems.map((item, index) => (
-                  <div key={index} className="flex items-start gap-1.5">
+                  <div key={index} className="flex items-start gap-2">
                     <div 
                       className="rounded-full bg-gray-700 flex-shrink-0 mt-1" 
                       style={{ 
-                        width: `${descriptionFontSize * 0.12}px`,
-                        height: `${descriptionFontSize * 0.12}px`
+                        width: `${bulletSize}px`, 
+                        height: `${bulletSize}px` 
                       }}
                     />
                     <span
-                      className="text-gray-700 font-medium leading-tight"
+                      className="text-gray-700 font-medium leading-snug"
                       style={{ fontSize: `${descriptionFontSize}px` }}
                     >
                       {item}
@@ -457,10 +445,10 @@ const CustomNodeUsWires = ({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col justify-center items-center gap-1.5 mb-auto py-2">
+              <div className="flex flex-col justify-center items-center gap-1.5 flex-grow py-2">
                 <span
                   className="text-gray-500 text-center italic leading-tight"
-                  style={{ fontSize: `${noDataFontSize}px` }}
+                  style={{ fontSize: `${Math.max(10, fontSize * 0.85)}px` }}
                 >
                   {aitNum 
                     ? `No data available for this AIT (${aitNum})`
@@ -470,7 +458,7 @@ const CustomNodeUsWires = ({
               </div>
             )}
 
-            <div className="flex gap-1.5 mt-2">
+            <div className="flex gap-1.5 mt-auto w-full">
               {inDefaultMode && (
                 <>
                   <LoadingButton
@@ -481,7 +469,7 @@ const CustomNodeUsWires = ({
                       height: `${buttonHeight}px`,
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
-                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
+                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
                       isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
                     }`}
                     onClick={(e) => {
@@ -500,7 +488,7 @@ const CustomNodeUsWires = ({
                       height: `${buttonHeight}px`,
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
-                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
+                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
                       isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
                     }`}
                     onClick={(e) => {
@@ -519,7 +507,7 @@ const CustomNodeUsWires = ({
                       height: `${buttonHeight}px`,
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
-                    className="min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border-0 bg-gray-400 hover:bg-gray-500 transition-all duration-200"
+                    className="flex-1 px-2 font-semibold shadow-sm rounded-full border-0 bg-gray-400 hover:bg-gray-500 transition-all duration-200"
                     onClick={(e) => {
                       e.stopPropagation()
                       triggerAction("balanced")
@@ -542,7 +530,7 @@ const CustomNodeUsWires = ({
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
                     aria-label="Trigger Summary Action"
-                    className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
+                    className="flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
                   >
                     Summary
                   </LoadingButton>
@@ -555,7 +543,7 @@ const CustomNodeUsWires = ({
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
                     aria-label="Trigger Details Action"
-                    className="flex flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
+                    className="flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
                   >
                     Details
                   </LoadingButton>
@@ -573,7 +561,7 @@ const CustomNodeUsWires = ({
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
                     aria-label="Trigger Summary Action"
-                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
+                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
                       isMatched
                         ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
                         : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
@@ -591,7 +579,7 @@ const CustomNodeUsWires = ({
                       fontSize: `${Math.max(11, fontSize * 0.9)}px`,
                     }}
                     aria-label="Trigger Summary Action"
-                    className={`min-w-0 flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
+                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
                       isMatched
                         ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
                         : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"

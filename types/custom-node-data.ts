@@ -16,4 +16,5 @@ export interface CustomNodeData {
   parentId?: string // Added parentId for section-based icon mapping
   isDragging?: boolean // Indicates if the node is currently being dragged
   position?: { x: number; y: number } // Current position coordinates
+  descriptions?: string // Multi-line string separated by \n, e.g., "Handles origination requests\n- receives inbound\n- Send messages"
 }

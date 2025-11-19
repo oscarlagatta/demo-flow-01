@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
-import { Handle, Position, type NodeProps, type Node } from "@xyflow/react"
+import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
 import { Clock } from 'lucide-react'
@@ -29,6 +29,8 @@ import { useNodePosition } from "@/domains/payment-health/hooks/use-node-positio
 const RESIZE_CONSTRAINTS = {
   minWidth: 150,
   maxWidth: 400,
+  minHeight: 100,
+  maxHeight: 600,
 }
 
 const CustomNodeUsWires = ({
@@ -36,12 +38,14 @@ const CustomNodeUsWires = ({
   id,
   onHideSearch,
 }: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
+  const updateNodeInternals = useUpdateNodeInternals()
   const [dimensions, setDimensions] = useState({
     width: 220,
+    height: 180,
   })
   const [isResizing, setIsResizing] = useState(false)
-  const [activeHandle, setActiveHandle] = useState<"e" | "w" | null>(null)
-  const resizeStartRef = useRef({ x: 0, width: 0 })
+  const [activeHandle, setActiveHandle] = useState<"e" | "w" | "n" | "s" | null>(null)
+  const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 })
   const nodeRef = useRef<HTMLDivElement>(null)
 
   const [isDragging, setIsDragging] = useState(false)
@@ -71,7 +75,7 @@ const CustomNodeUsWires = ({
     onConflict: (serverVersion, clientVersion) => {
       loadDimensions().then((dims) => {
         if (dims) {
-          setDimensions({ width: dims.width })
+          setDimensions({ width: dims.width, height: dims.height })
         }
       })
     },
@@ -102,7 +106,7 @@ const CustomNodeUsWires = ({
   const trafficStatusColorClass = getTrafficStatusColorClass(trafficStatusColor)
 
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent, handle: "e" | "w") => {
+    (e: React.MouseEvent, handle: "e" | "w" | "n" | "s") => {
       e.stopPropagation()
       e.preventDefault()
       e.nativeEvent.stopImmediatePropagation()
@@ -111,7 +115,9 @@ const CustomNodeUsWires = ({
       setActiveHandle(handle)
       resizeStartRef.current = {
         x: e.clientX,
+        y: e.clientY,
         width: dimensions.width,
+        height: dimensions.height,
       }
     },
     [dimensions],
@@ -123,8 +129,10 @@ const CustomNodeUsWires = ({
 
       requestAnimationFrame(() => {
         const deltaX = e.clientX - resizeStartRef.current.x
+        const deltaY = e.clientY - resizeStartRef.current.y
 
         let newWidth = resizeStartRef.current.width
+        let newHeight = resizeStartRef.current.height
 
         if (activeHandle === "e") {
           newWidth = resizeStartRef.current.width + deltaX
@@ -132,9 +140,16 @@ const CustomNodeUsWires = ({
           newWidth = resizeStartRef.current.width - deltaX
         }
 
-        newWidth = Math.max(RESIZE_CONSTRAINTS.minWidth, Math.min(RESIZE_CONSTRAINTS.maxWidth, newWidth))
+        if (activeHandle === "s") {
+          newHeight = resizeStartRef.current.height + deltaY
+        } else if (activeHandle === "n") {
+          newHeight = resizeStartRef.current.height - deltaY
+        }
 
-        setDimensions({ width: newWidth })
+        newWidth = Math.max(RESIZE_CONSTRAINTS.minWidth, Math.min(RESIZE_CONSTRAINTS.maxWidth, newWidth))
+        newHeight = Math.max(RESIZE_CONSTRAINTS.minHeight, Math.min(RESIZE_CONSTRAINTS.maxHeight, newHeight))
+
+        setDimensions({ width: newWidth, height: newHeight })
       })
     },
     [isResizing, activeHandle],
@@ -195,6 +210,28 @@ const CustomNodeUsWires = ({
   const fontSize = Math.max(8, Math.min(12, dimensions.width / 20))
   const buttonHeight = 32
 
+  const descriptionItems = useMemo(() => {
+    if (!data.descriptions) return []
+    return data.descriptions
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .map(line => line.startsWith('-') ? line.substring(1).trim() : line)
+  }, [data.descriptions])
+
+  const descriptionColumns = useMemo(() => {
+    const itemCount = descriptionItems.length
+    if (itemCount === 0) return 1
+    
+    // Use 2 columns if we have 4+ items and width is sufficient
+    if (itemCount >= 4 && dimensions.width >= 280) return 2
+    
+    // Use 3 columns only for 9+ items and very wide nodes
+    if (itemCount >= 9 && dimensions.width >= 350) return 3
+    
+    return 1
+  }, [descriptionItems.length, dimensions.width])
+
   useEffect(() => {
     if (data.isDragging !== undefined) {
       setIsDragging(data.isDragging)
@@ -207,7 +244,7 @@ const CustomNodeUsWires = ({
             x: positionData.x,
             y: positionData.y,
             width: positionData.width,
-            height: rect.height, // Get actual rendered height from DOM
+            height: rect.height,
           })
         }
       }
@@ -221,7 +258,7 @@ const CustomNodeUsWires = ({
         x: data.position?.x || prev.x,
         y: data.position?.y || prev.y,
         width: dimensions.width,
-        height: rect.height, // Get actual rendered height from DOM
+        height: rect.height,
       }))
     }
   }, [isDragging, data.position, dimensions.width])
@@ -235,17 +272,18 @@ const CustomNodeUsWires = ({
           x: positionData.x,
           y: positionData.y,
           width: dimensions.width,
-          height: rect.height, // Get actual rendered height from DOM
+          height: rect.height,
         })
       }
     }
-  }, [isResizing, dimensions.width, getCurrentPosition])
+  }, [isResizing, dimensions.width, dimensions.height, getCurrentPosition])
 
   useEffect(() => {
     if (isResizing) {
       document.addEventListener("mousemove", handleResizeMove)
       document.addEventListener("mouseup", handleResizeEnd)
-      document.body.style.cursor = activeHandle === "e" || activeHandle === "w" ? "ew-resize" : "default"
+      const cursor = activeHandle === "e" || activeHandle === "w" ? "ew-resize" : activeHandle === "n" || activeHandle === "s" ? "ns-resize" : "default"
+      document.body.style.cursor = cursor
 
       return () => {
         document.removeEventListener("mousemove", handleResizeMove)
@@ -254,6 +292,10 @@ const CustomNodeUsWires = ({
       }
     }
   }, [isResizing, handleResizeMove, handleResizeEnd, activeHandle])
+
+  useEffect(() => {
+    updateNodeInternals(id)
+  }, [id, dimensions, updateNodeInternals])
 
   const handleAddNode = () => {
     logPosition()
@@ -315,7 +357,7 @@ const CustomNodeUsWires = ({
 
   return (
     <>
-      <div ref={nodeRef} className="relative group" style={{ width: dimensions.width }}>
+      <div ref={nodeRef} className="relative group" style={{ width: dimensions.width, height: dimensions.height }}>
         <PositionDisplayOverlay
           x={livePosition.x}
           y={livePosition.y}
@@ -330,7 +372,7 @@ const CustomNodeUsWires = ({
 
         <Card
           className={getCardClassName()}
-          style={{ width: "100%" }}
+          style={{ width: "100%", height: "100%" }}
           onClick={handleClick}
           data-testid={`custom-node-${id}`}
         >
@@ -365,26 +407,48 @@ const CustomNodeUsWires = ({
           </CardHeader>
 
           <CardContent className="p-2 pt-1.5 flex flex-col justify-between min-h-[80px]">
-            <div className="flex flex-col justify-center gap-1.5 mb-auto">
-              <div className="flex items-start gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
-                <span
-                  className="text-gray-700 font-medium leading-tight"
-                  style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
-                >
-                  Fraud Scoring
-                </span>
+            {data.descriptions && descriptionItems.length > 0 ? (
+              <div 
+                className={`mb-auto grid gap-x-3 gap-y-1.5 ${
+                  descriptionColumns === 3 ? 'grid-cols-3' : 
+                  descriptionColumns === 2 ? 'grid-cols-2' : 
+                  'grid-cols-1'
+                }`}
+              >
+                {descriptionItems.map((item, index) => (
+                  <div key={index} className="flex items-start gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
+                    <span
+                      className="text-gray-700 font-medium leading-tight"
+                      style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
+                    >
+                      {item}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
-                <span
-                  className="text-gray-700 font-medium leading-tight"
-                  style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
-                >
-                  Case Management
-                </span>
+            ) : (
+              <div className="flex flex-col justify-center gap-1.5 mb-auto">
+                <div className="flex items-start gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
+                  <span
+                    className="text-gray-700 font-medium leading-tight"
+                    style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
+                  >
+                    Fraud Scoring
+                  </span>
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-700 flex-shrink-0 mt-1" />
+                  <span
+                    className="text-gray-700 font-medium leading-tight"
+                    style={{ fontSize: `${Math.max(11, fontSize * 0.9)}px` }}
+                  >
+                    Case Management
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-1.5 mt-2">
               {inDefaultMode && (
@@ -534,6 +598,18 @@ const CustomNodeUsWires = ({
           onMouseDown={(e) => handleResizeStart(e, "e")}
           onPointerDown={(e) => e.stopPropagation()}
           title="Resize width from right"
+        />
+        <div
+          className="nodrag absolute left-1/2 -translate-x-1/2 -top-1 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "n")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize height from top"
+        />
+        <div
+          className="nodrag absolute left-1/2 -translate-x-1/2 -bottom-1 w-6 h-2 bg-blue-500 border border-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-ns-resize z-20 shadow-lg hover:bg-blue-600"
+          onMouseDown={(e) => handleResizeStart(e, "s")}
+          onPointerDown={(e) => e.stopPropagation()}
+          title="Resize height from bottom"
         />
       </div>
 

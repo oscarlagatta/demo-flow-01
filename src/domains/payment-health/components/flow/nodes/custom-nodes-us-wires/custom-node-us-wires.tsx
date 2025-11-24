@@ -23,11 +23,11 @@ import { NodeSaveToolbar } from "./node-save-toolbar"
 import { PositionDisplayOverlay } from "./position-display-overlay"
 
 import type { CustomNodeData } from "@/types/custom-node-data"
+import type { E2ERegionWireFlowModel } from "@/types/region-wire-flow-model"
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { getNodeIcon, getNodeIconColor, type NodeCategory } from "@/domains/payment-health/utils/node-icon-mapping"
 import { useNodePosition } from "@/domains/payment-health/hooks/use-node-position"
 import { useRegionWireFlowPresenter } from "@/domains/payment-health/hooks/use-region-wire-flow-presenter"
-import type { E2ERegionWireFlowModel } from "@bofa/data-services"
 
 const RESIZE_CONSTRAINTS = {
   minWidth: 150,
@@ -446,7 +446,12 @@ const CustomNodeUsWires = ({
         />
 
         {data.isSelected && (
-          <NodeToolbar onAddNode={handleAddNode} onCreateIncident={handleCreateIncident} onDelete={handleDeleteNode} />
+          <NodeToolbar
+            onAddNode={handleAddNode}
+            onCreateIncident={handleCreateIncident}
+            onDelete={handleDeleteNode}
+            onSave={handleSaveNode}
+          />
         )}
 
         <Card

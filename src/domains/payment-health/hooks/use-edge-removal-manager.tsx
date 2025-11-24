@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import type { Edge } from "@xyflow/react"
 import { useRegionWireFlowPresenter } from "./use-region-wire-flow-presenter"
-import type { E2ERegionWireFlowModel, NodeFlow } from "@bofa/data-services"
+import type { E2ERegionWireFlowModel, NodeFlow } from "@/types/region-wire-flow-model"
 
 interface RemovedEdge {
   edgeId: string

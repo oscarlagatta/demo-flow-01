@@ -86,3 +86,23 @@ export function postApiV2SplunkDataRaiseIncidentMutation() {
     },
   }
 }
+
+export function getApiV2SplunkDataGetAllActiveApplicationsApplicationOptions(): UseQueryOptions {
+  return {
+    queryKey: ["applications"],
+    queryFn: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      return [
+        { aitNumber: 512, aitName: "SAA", description: "SAA Application", status: "Active" },
+        { aitNumber: 1554, aitName: "SAG", description: "SAG Application", status: "Active" },
+        { aitNumber: 42690, aitName: "ETS", description: "ETS Application", status: "Active" },
+        { aitNumber: 48167, aitName: "GTMS", description: "GTMS Application", status: "Active" },
+      ]
+    },
+    staleTime: 10 * 60 * 1000,
+  }
+}
+
+export function getApiV2E2eRegionWireFlowGetRegionWireFlowQueryKey() {
+  return ["region-wire-flow"]
+}

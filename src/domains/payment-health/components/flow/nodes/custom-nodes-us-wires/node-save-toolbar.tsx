@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import type { Node, Edge } from "@xyflow/react"
 import type { CustomNodeData } from "@/types/custom-node-data"
-import type { E2ERegionWireFlowModel } from "@bofa/data-services"
+import type { E2ERegionWireFlowModel } from "@/types/region-wire-flow-model"
 
 interface NodeSaveToolbarProps {
   node: Node<CustomNodeData>

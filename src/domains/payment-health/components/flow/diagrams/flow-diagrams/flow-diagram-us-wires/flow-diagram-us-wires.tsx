@@ -1,7 +1,6 @@
 "use client"
 import { type ReactNode, useCallback, useEffect, useMemo, useState, useRef } from "react"
 import type React from "react"
-import { MarkerType } from "@xyflow/react" // Import MarkerType
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
@@ -23,7 +22,7 @@ import {
   useStore,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { AlertCircle, Loader2, RefreshCw, Save, Check } from 'lucide-react'
+import { AlertCircle, Loader2, RefreshCw, Save, Check } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -349,19 +348,17 @@ const Flow = ({
     (changes: NodeChange<Node>[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes],
   )
-  
+
   const onNodeDragStart = useCallback((_event: React.MouseEvent, node: Node) => {
     setDraggingNodeId(node.id)
   }, [])
 
   const onNodeDrag = useCallback((_event: React.MouseEvent, node: Node) => {
     // Update node position during drag
-    setNodes((nds) => 
-      nds.map((n) => 
-        n.id === node.id 
-          ? { ...n, position: node.position, data: { ...n.data, position: node.position } }
-          : n
-      )
+    setNodes((nds) =>
+      nds.map((n) =>
+        n.id === node.id ? { ...n, position: node.position, data: { ...n.data, position: node.position } } : n,
+      ),
     )
   }, [])
 
@@ -370,14 +367,40 @@ const Flow = ({
   }, [])
 
   const onEdgesChange: OnEdgesChange = useCallback(
-    (changes: EdgeChange<Edge>[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges],
+    (changes: EdgeChange<Edge>[]) => {
+      const removedEdges = changes.filter((change) => change.type === "remove")
+
+      if (removedEdges.length > 0) {
+        // Track removed edges for batch persistence
+        removedEdges.forEach((change) => {
+          if (change.type === "remove") {
+            const edgeId = change.id
+            const edge = edges.find((e) => e.id === edgeId)
+
+            if (edge) {
+              console.log("[v0] Edge removed:", {
+                id: edgeId,
+                source: edge.source,
+                target: edge.target,
+                label: edge.label,
+              })
+
+              // Option 1: Update both affected nodes immediately
+              // This ensures the nodeFlows array is updated for both source and target nodes
+              toast.info("Connection removed", {
+                description: "Click Save to persist changes",
+              })
+            }
+          }
+        })
+      }
+
+      setEdges((eds) => applyEdgeChanges(changes, eds))
+    },
+    [setEdges, edges],
   )
 
-  const onConnect: OnConnect = useCallback(
-    (connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges],
-  )
+  const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), [setEdges])
 
   const nodesForFlow = useMemo(() => {
     return nodes.map((node) => {

@@ -5,7 +5,7 @@ import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals, useReactFlow } from "@xyflow/react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
-import { Clock } from 'lucide-react'
+import { Clock } from "lucide-react"
 import { toast } from "sonner"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
@@ -40,7 +40,7 @@ const RESIZE_CONSTRAINTS = {
 const buildRegionWireFlowModel = (
   node: Node<CustomNodeData>,
   currentPosition: { x: number; y: number; width: number; height: number } | null,
-  connectedEdges: any[]
+  connectedEdges: any[],
 ): E2ERegionWireFlowModel => {
   // Extract AIT number from subtext (e.g., "AIT 512" -> 512)
   const aitMatch = node.data.subtext?.match(/AIT\s*(\d+)/)
@@ -56,10 +56,17 @@ const buildRegionWireFlowModel = (
     label: edge.label || null,
   }))
 
+  // Priority: explicit category field > icon field (which contains category) > parentId extraction
+  const area =
+    node.data.category ||
+    (typeof node.data.icon === "string" ? node.data.icon : null) ||
+    node.data.parentId?.replace("bg-", "") ||
+    null
+
   return {
     id: node.id ? Number.parseInt(node.id, 10) : undefined,
     region: "US", // Default region, could be extracted from data if available
-    area: node.data.parentId?.replace("bg-", "") || null, // Extract area from parent section
+    area: area, // Use category from node data as area
     appId: aitNumber,
     mappedAppId: node.data.subtext || null,
     nodeWidth: currentPosition?.width || 180,
@@ -81,10 +88,10 @@ const CustomNodeUsWires = ({
 }: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
   const updateNodeInternals = useUpdateNodeInternals()
   const { getNode, getEdges } = useReactFlow()
-  
+
   const { handleUpdateRegionWireFlow } = useRegionWireFlowPresenter()
   const [isSavingNode, setIsSavingNode] = useState(false)
-  
+
   const [dimensions, setDimensions] = useState({
     width: 220,
     height: 180,
@@ -98,7 +105,6 @@ const CustomNodeUsWires = ({
   const [livePosition, setLivePosition] = useState({ x: 0, y: 0, width: 0, height: 0 })
 
   const isAuthorized = true
-
 
   const {
     data: splunkData,
@@ -130,11 +136,10 @@ const CustomNodeUsWires = ({
 
   const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
 
-
   const handleSaveNode = useCallback(async () => {
     try {
       setIsSavingNode(true)
-      
+
       // Get current node data
       const currentNode = getNode(id)
       if (!currentNode) {
@@ -143,19 +148,13 @@ const CustomNodeUsWires = ({
 
       // Get current position
       const positionData = getCurrentPosition()
-      
+
       // Get all edges connected to this node
       const allEdges = getEdges()
-      const connectedEdges = allEdges.filter(
-        (edge) => edge.source === id || edge.target === id
-      )
+      const connectedEdges = allEdges.filter((edge) => edge.source === id || edge.target === id)
 
       // Build the E2ERegionWireFlowModel
-      const regionWireFlowModel = buildRegionWireFlowModel(
-        currentNode,
-        positionData,
-        connectedEdges
-      )
+      const regionWireFlowModel = buildRegionWireFlowModel(currentNode, positionData, connectedEdges)
 
       // Call the update handler
       await handleUpdateRegionWireFlow(regionWireFlowModel)
@@ -172,7 +171,6 @@ const CustomNodeUsWires = ({
       setIsSavingNode(false)
     }
   }, [id, data.title, getNode, getEdges, getCurrentPosition, handleUpdateRegionWireFlow])
-
 
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
@@ -304,20 +302,20 @@ const CustomNodeUsWires = ({
   const descriptionItems = useMemo(() => {
     if (!data.descriptions) return []
     return data.descriptions
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0)
-      .map(line => line.startsWith('-') ? line.substring(1).trim() : line)
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .map((line) => (line.startsWith("-") ? line.substring(1).trim() : line))
   }, [data.descriptions])
 
   const descriptionColumns = useMemo(() => {
     const itemCount = descriptionItems.length
     if (itemCount === 0) return 1
-    
+
     if (itemCount >= 4 && dimensions.width >= 280) return 2
-    
+
     if (itemCount >= 9 && dimensions.width >= 350) return 3
-    
+
     return 1
   }, [descriptionItems.length, dimensions.width])
 
@@ -333,7 +331,7 @@ const CustomNodeUsWires = ({
   useEffect(() => {
     if (data.isDragging !== undefined) {
       setIsDragging(data.isDragging)
-      
+
       if (data.isDragging) {
         const positionData = getCurrentPosition()
         if (positionData && nodeRef.current) {
@@ -352,7 +350,7 @@ const CustomNodeUsWires = ({
   useEffect(() => {
     if (isDragging && data.position && nodeRef.current) {
       const rect = nodeRef.current.getBoundingClientRect()
-      setLivePosition(prev => ({
+      setLivePosition((prev) => ({
         x: data.position?.x || prev.x,
         y: data.position?.y || prev.y,
         width: dimensions.width,
@@ -380,7 +378,12 @@ const CustomNodeUsWires = ({
     if (isResizing) {
       document.addEventListener("mousemove", handleResizeMove)
       document.addEventListener("mouseup", handleResizeEnd)
-      const cursor = activeHandle === "e" || activeHandle === "w" ? "ew-resize" : activeHandle === "n" || activeHandle === "s" ? "ns-resize" : "default"
+      const cursor =
+        activeHandle === "e" || activeHandle === "w"
+          ? "ew-resize"
+          : activeHandle === "n" || activeHandle === "s"
+            ? "ns-resize"
+            : "default"
       document.body.style.cursor = cursor
 
       return () => {
@@ -431,13 +434,13 @@ const CustomNodeUsWires = ({
 
   useEffect(() => {
     const errorHandler = (e: ErrorEvent) => {
-      if (e.message.includes('ResizeObserver loop')) {
+      if (e.message.includes("ResizeObserver loop")) {
         e.stopImmediatePropagation()
         e.preventDefault()
       }
     }
-    window.addEventListener('error', errorHandler)
-    return () => window.removeEventListener('error', errorHandler)
+    window.addEventListener("error", errorHandler)
+    return () => window.removeEventListener("error", errorHandler)
   }, [])
 
   if (isLoading) {
@@ -508,20 +511,18 @@ const CustomNodeUsWires = ({
 
           <CardContent className="p-2 pt-1.5 flex flex-col min-h-[80px]">
             {data.descriptions && descriptionItems.length > 0 ? (
-              <div 
+              <div
                 className={`flex-grow pl-2 grid gap-x-4 gap-y-2 ${
-                  descriptionColumns === 3 ? 'grid-cols-3' : 
-                  descriptionColumns === 2 ? 'grid-cols-2' : 
-                  'grid-cols-1'
+                  descriptionColumns === 3 ? "grid-cols-3" : descriptionColumns === 2 ? "grid-cols-2" : "grid-cols-1"
                 }`}
               >
                 {descriptionItems.map((item, index) => (
                   <div key={index} className="flex items-start gap-2">
-                    <div 
-                      className="rounded-full bg-gray-700 flex-shrink-0 mt-1" 
-                      style={{ 
-                        width: `${bulletSize}px`, 
-                        height: `${bulletSize}px` 
+                    <div
+                      className="rounded-full bg-gray-700 flex-shrink-0 mt-1"
+                      style={{
+                        width: `${bulletSize}px`,
+                        height: `${bulletSize}px`,
                       }}
                     />
                     <span
@@ -539,10 +540,7 @@ const CustomNodeUsWires = ({
                   className="text-gray-500 text-center italic leading-tight"
                   style={{ fontSize: `${Math.max(10, fontSize * 0.85)}px` }}
                 >
-                  {aitNum 
-                    ? `No data available for this AIT (${aitNum})`
-                    : 'No data available for this node'
-                  }
+                  {aitNum ? `No data available for this AIT (${aitNum})` : "No data available for this node"}
                 </span>
               </div>
             )}

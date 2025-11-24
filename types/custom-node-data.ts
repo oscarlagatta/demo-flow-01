@@ -17,4 +17,5 @@ export interface CustomNodeData {
   isDragging?: boolean // Indicates if the node is currently being dragged
   position?: { x: number; y: number } // Current position coordinates
   descriptions?: string // Multi-line string separated by \n, e.g., "Handles origination requests\n- receives inbound\n- Send messages"
+  category?: string // Node category that maps to 'area' in E2ERegionWireFlowModel (e.g., "origination", "validation", etc.)
 }

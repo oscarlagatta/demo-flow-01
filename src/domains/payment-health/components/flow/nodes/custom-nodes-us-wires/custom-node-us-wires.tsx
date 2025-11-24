@@ -6,6 +6,7 @@ import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals, us
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
 import { Clock } from "lucide-react"
+import { Loader2, Check, AlertCircle } from "lucide-react"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -91,6 +92,7 @@ const CustomNodeUsWires = ({
 
   const { handleUpdateRegionWireFlow } = useRegionWireFlowPresenter()
   const [isSavingNode, setIsSavingNode] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle")
 
   const [dimensions, setDimensions] = useState({
     width: 220,
@@ -138,7 +140,18 @@ const CustomNodeUsWires = ({
 
   const handleSaveNode = useCallback(
     async (model: E2ERegionWireFlowModel) => {
-      await handleUpdateRegionWireFlow(model)
+      setSaveStatus("saving")
+      setIsSavingNode(true)
+      try {
+        await handleUpdateRegionWireFlow(model)
+        setSaveStatus("success")
+        setTimeout(() => setSaveStatus("idle"), 2000)
+      } catch (error) {
+        setSaveStatus("error")
+        setTimeout(() => setSaveStatus("idle"), 3000)
+      } finally {
+        setIsSavingNode(false)
+      }
     },
     [handleUpdateRegionWireFlow],
   )
@@ -475,6 +488,28 @@ const CustomNodeUsWires = ({
                 >
                   {data.title}
                 </CardTitle>
+                {saveStatus !== "idle" && (
+                  <div className="flex items-center gap-1 ml-1">
+                    {saveStatus === "saving" && (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 text-blue-600 animate-spin" />
+                        <span className="text-[10px] text-blue-600 font-medium">Saving...</span>
+                      </>
+                    )}
+                    {saveStatus === "success" && (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                        <span className="text-[10px] text-green-600 font-medium">Saved</span>
+                      </>
+                    )}
+                    {saveStatus === "error" && (
+                      <>
+                        <AlertCircle className="h-3.5 w-3.5 text-red-600" />
+                        <span className="text-[10px] text-red-600 font-medium">Error</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-1 flex-shrink-0">

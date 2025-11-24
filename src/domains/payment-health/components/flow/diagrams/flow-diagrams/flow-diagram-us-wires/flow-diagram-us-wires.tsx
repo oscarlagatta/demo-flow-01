@@ -38,6 +38,7 @@ import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/cu
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
 import { useFlowSaveManager } from "@/domains/payment-health/hooks/use-node-resize-persistence"
+import { useEdgeRemovalManager } from "@/domains/payment-health/hooks/use-edge-removal-manager"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -126,7 +127,7 @@ const DraggablePanel = ({
   )
 }
 
-const Flow = ({
+const FlowDiagramUsWiresComponent = ({
   nodeTypes,
   onShowSearchBox,
   isMonitorMode,
@@ -176,6 +177,8 @@ const Flow = ({
     enabled: isAuthorized,
     refetchInterval: 30000, // Refresh every 30 seconds
   })
+
+  const { trackEdgeRemoval, persistEdgeRemovals, removedEdgesCount } = useEdgeRemovalManager()
 
   const handleRefetch = async () => {
     try {
@@ -371,24 +374,16 @@ const Flow = ({
       const removedEdges = changes.filter((change) => change.type === "remove")
 
       if (removedEdges.length > 0) {
-        // Track removed edges for batch persistence
         removedEdges.forEach((change) => {
           if (change.type === "remove") {
             const edgeId = change.id
             const edge = edges.find((e) => e.id === edgeId)
 
             if (edge) {
-              console.log("[v0] Edge removed:", {
-                id: edgeId,
-                source: edge.source,
-                target: edge.target,
-                label: edge.label,
-              })
+              trackEdgeRemoval(edge)
 
-              // Option 1: Update both affected nodes immediately
-              // This ensures the nodeFlows array is updated for both source and target nodes
               toast.info("Connection removed", {
-                description: "Click Save to persist changes",
+                description: `${removedEdgesCount + 1} pending change(s). Save nodes to persist.`,
               })
             }
           }
@@ -397,7 +392,7 @@ const Flow = ({
 
       setEdges((eds) => applyEdgeChanges(changes, eds))
     },
-    [setEdges, edges],
+    [setEdges, edges, trackEdgeRemoval, removedEdgesCount],
   )
 
   const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), [setEdges])
@@ -706,6 +701,7 @@ const Flow = ({
     </div>
   )
 }
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -747,7 +743,11 @@ export function FlowDiagramUsWires({ isMonitorMode = false }: FlowDiagramUsWires
             {/*/>*/}
           </>
         ) : (
-          <Flow nodeTypes={nodeTypes} onShowSearchBox={() => setShowSearchBox(true)} isMonitorMode={isMonitorMode} />
+          <FlowDiagramUsWiresComponent
+            nodeTypes={nodeTypes}
+            onShowSearchBox={() => setShowSearchBox(true)}
+            isMonitorMode={isMonitorMode}
+          />
         )}
       </ReactFlowProvider>
     </QueryClientProvider>

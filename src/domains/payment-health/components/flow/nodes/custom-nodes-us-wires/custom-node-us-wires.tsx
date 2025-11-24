@@ -6,7 +6,6 @@ import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals, us
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
 import { Clock } from "lucide-react"
-import { toast } from "sonner"
 
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
@@ -84,6 +83,7 @@ const buildRegionWireFlowModel = (
 const CustomNodeUsWires = ({
   data,
   id,
+  position,
   onHideSearch,
 }: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
   const updateNodeInternals = useUpdateNodeInternals()
@@ -136,41 +136,12 @@ const CustomNodeUsWires = ({
 
   const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
 
-  const handleSaveNode = useCallback(async () => {
-    try {
-      setIsSavingNode(true)
-
-      // Get current node data
-      const currentNode = getNode(id)
-      if (!currentNode) {
-        throw new Error("Node not found")
-      }
-
-      // Get current position
-      const positionData = getCurrentPosition()
-
-      // Get all edges connected to this node
-      const allEdges = getEdges()
-      const connectedEdges = allEdges.filter((edge) => edge.source === id || edge.target === id)
-
-      // Build the E2ERegionWireFlowModel
-      const regionWireFlowModel = buildRegionWireFlowModel(currentNode, positionData, connectedEdges)
-
-      // Call the update handler
-      await handleUpdateRegionWireFlow(regionWireFlowModel)
-
-      toast.success("Node saved successfully!", {
-        description: `${data.title} has been updated`,
-      })
-    } catch (error) {
-      console.error("[v0] Failed to save node:", error)
-      toast.error("Failed to save node", {
-        description: error instanceof Error ? error.message : "Please try again",
-      })
-    } finally {
-      setIsSavingNode(false)
-    }
-  }, [id, data.title, getNode, getEdges, getCurrentPosition, handleUpdateRegionWireFlow])
+  const handleSaveNode = useCallback(
+    async (model: E2ERegionWireFlowModel) => {
+      await handleUpdateRegionWireFlow(model)
+    },
+    [handleUpdateRegionWireFlow],
+  )
 
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
@@ -467,7 +438,12 @@ const CustomNodeUsWires = ({
           isVisible={isDragging || isResizing}
         />
 
-        <NodeSaveToolbar onSave={handleSaveNode} isSaving={isSavingNode} />
+        <NodeSaveToolbar
+          node={{ id, data, position } as Node<CustomNodeData>}
+          getEdges={getEdges}
+          getCurrentPosition={getCurrentPosition}
+          onSave={handleSaveNode}
+        />
 
         {data.isSelected && (
           <NodeToolbar onAddNode={handleAddNode} onCreateIncident={handleCreateIncident} onDelete={handleDeleteNode} />

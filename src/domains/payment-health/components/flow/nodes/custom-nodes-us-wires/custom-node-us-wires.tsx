@@ -16,7 +16,6 @@ import {
   type TrafficStatusColor,
 } from "../../../../utils/traffic-status-utils"
 import { computeTrendColors, getTrendColorClass, type TrendColor } from "../../../../utils/trend-color-utils"
-import { LoadingButton } from "../../../loading/loading-button"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 import { EditableDescriptions } from "./editable-descriptions"
 
@@ -601,171 +600,37 @@ const CustomNodeUsWires = ({
                 bulletSize={bulletSize}
                 fontSize={descriptionFontSize}
                 columns={descriptionColumns}
+                isEditing={true}
               />
             ) : data.descriptions && descriptionItems.length > 0 ? (
-              <div
-                className={`flex-grow pl-2 grid gap-x-4 gap-y-2 ${
-                  descriptionColumns === 3 ? "grid-cols-3" : descriptionColumns === 2 ? "grid-cols-2" : "grid-cols-1"
-                }`}
-              >
+              <ul className="flex-grow list-none m-0 p-0 space-y-0.5">
                 {descriptionItems.map((item, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <div
-                      className="rounded-full bg-gray-700 flex-shrink-0 mt-1"
+                  <li key={index} className="flex items-start gap-1.5">
+                    <span
+                      className="rounded-full bg-gray-500 flex-shrink-0"
                       style={{
                         width: `${bulletSize}px`,
                         height: `${bulletSize}px`,
+                        marginTop: `${(descriptionFontSize * 1.4 - bulletSize) / 2}px`,
                       }}
                     />
                     <span
-                      className="text-gray-700 font-medium leading-snug"
-                      style={{ fontSize: `${descriptionFontSize}px` }}
+                      className="text-gray-700 leading-snug break-words whitespace-pre-wrap"
+                      style={{
+                        fontSize: `${descriptionFontSize}px`,
+                        lineHeight: "1.4",
+                      }}
                     >
                       {item}
                     </span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             ) : (
-              <div className="flex-grow flex items-center justify-center text-gray-400 text-sm">
-                {isEditingDescriptions ? null : "No descriptions"}
+              <div className="flex-grow flex items-center justify-center text-gray-400 text-sm italic">
+                No descriptions available
               </div>
             )}
-
-            <div className="flex gap-1.5 mt-auto w-full">
-              {inDefaultMode && (
-                <>
-                  <LoadingButton
-                    isLoading={isFetching}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
-                      isError ? "bg-gray-400 hover:bg-gray-500" : `${trafficStatusColorClass} hover:opacity-90`
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      triggerAction("flow")
-                    }}
-                    disabled={trafficStatusColorClass === "bg-gray-400"}
-                  >
-                    Flow
-                  </LoadingButton>
-                  <LoadingButton
-                    isLoading={isFetching}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border-0 transition-all duration-200 ${
-                      isError ? "bg-gray-400 hover:bg-gray-500" : `${trendColorClass} hover:opacity-90`
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      triggerAction("trend")
-                    }}
-                    disabled={trendColorClass === "bg-gray-400"}
-                  >
-                    Trend
-                  </LoadingButton>
-                  <LoadingButton
-                    isLoading={isFetching}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    className="flex-1 px-2 font-semibold shadow-sm rounded-full border-0 bg-gray-400 hover:bg-gray-500 transition-all duration-200"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      triggerAction("balanced")
-                    }}
-                    disabled={trendColorClass === "bg-gray-400"}
-                  >
-                    Balanced
-                  </LoadingButton>
-                </>
-              )}
-
-              {inLoadingMode && (
-                <>
-                  <LoadingButton
-                    isLoading={true}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    aria-label="Trigger Summary Action"
-                    className="flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
-                  >
-                    Summary
-                  </LoadingButton>
-                  <LoadingButton
-                    isLoading={true}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    aria-label="Trigger Details Action"
-                    className="flex-1 items-center justify-center border-blue-500 bg-blue-500 px-2 font-semibold shadow-sm rounded-full hover:bg-blue-600 transition-all duration-200"
-                  >
-                    Details
-                  </LoadingButton>
-                </>
-              )}
-
-              {inResultsMode && (
-                <>
-                  <LoadingButton
-                    isLoading={false}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    aria-label="Trigger Summary Action"
-                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
-                      isMatched
-                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                        : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                    }`}
-                    disabled={!isMatched}
-                  >
-                    Summary
-                  </LoadingButton>
-                  <LoadingButton
-                    isLoading={false}
-                    loadingText="..."
-                    variant="outline"
-                    style={{
-                      height: `${buttonHeight}px`,
-                      fontSize: `${Math.max(11, fontSize * 0.9)}px`,
-                    }}
-                    aria-label="Trigger Summary Action"
-                    className={`flex-1 px-2 font-semibold shadow-sm rounded-full border transition-all duration-200 ${
-                      isMatched
-                        ? "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
-                        : "cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400"
-                    }`}
-                    onClick={isMatched ? handleDetailsClick : undefined}
-                    disabled={!isMatched || isDetailsLoading}
-                  >
-                    Details
-                  </LoadingButton>
-                </>
-              )}
-            </div>
           </CardContent>
         </Card>
 

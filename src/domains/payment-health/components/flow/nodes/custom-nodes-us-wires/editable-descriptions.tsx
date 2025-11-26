@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import type React from "react"
+
+import { useState, useRef, useEffect } from "react"
+import { Plus, X } from "lucide-react"
 
 interface EditableDescriptionsProps {
   items: string[]
@@ -11,11 +11,36 @@ interface EditableDescriptionsProps {
   bulletSize: number
   fontSize: number
   columns: number
+  isEditing?: boolean
 }
 
-export function EditableDescriptions({ items, onUpdate, bulletSize, fontSize, columns }: EditableDescriptionsProps) {
+export function EditableDescriptions({
+  items,
+  onUpdate,
+  bulletSize,
+  fontSize,
+  columns,
+  isEditing = false,
+}: EditableDescriptionsProps) {
   const [localItems, setLocalItems] = useState<string[]>(items)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([])
+
+  useEffect(() => {
+    setLocalItems(items)
+  }, [items])
+
+  const autoResizeTextarea = (textarea: HTMLTextAreaElement | null) => {
+    if (textarea) {
+      textarea.style.height = "auto"
+      textarea.style.height = `${textarea.scrollHeight}px`
+    }
+  }
+
+  useEffect(() => {
+    textareaRefs.current.forEach(autoResizeTextarea)
+  }, [localItems])
 
   const handleItemChange = (index: number, value: string) => {
     const updated = [...localItems]
@@ -29,6 +54,13 @@ export function EditableDescriptions({ items, onUpdate, bulletSize, fontSize, co
     setLocalItems(updated)
     onUpdate(updated)
     setEditingIndex(updated.length - 1)
+    setTimeout(() => {
+      const newTextarea = textareaRefs.current[updated.length - 1]
+      if (newTextarea) {
+        newTextarea.focus()
+        autoResizeTextarea(newTextarea)
+      }
+    }, 0)
   }
 
   const handleRemoveItem = (index: number) => {
@@ -40,69 +72,119 @@ export function EditableDescriptions({ items, onUpdate, bulletSize, fontSize, co
     }
   }
 
-  if (localItems.length === 0) {
-    return (
-      <div className="flex-grow flex items-center justify-center p-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleAddItem}
-          className="nodrag text-blue-600 border-blue-300 hover:bg-blue-50 bg-transparent"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add First Item
-        </Button>
-      </div>
-    )
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleAddItem()
+    } else if (e.key === "Backspace" && localItems[index] === "") {
+      e.preventDefault()
+      handleRemoveItem(index)
+      if (index > 0) {
+        setTimeout(() => textareaRefs.current[index - 1]?.focus(), 0)
+      }
+    }
   }
 
   return (
-    <div className="flex-grow pl-2">
-      <div
-        className={`grid gap-x-4 gap-y-2 ${
-          columns === 3 ? "grid-cols-3" : columns === 2 ? "grid-cols-2" : "grid-cols-1"
-        }`}
-      >
-        {localItems.map((item, index) => (
-          <div key={index} className="flex items-start gap-2 group/item">
-            <div
-              className="rounded-full bg-gray-700 flex-shrink-0 mt-1"
-              style={{
-                width: `${bulletSize}px`,
-                height: `${bulletSize}px`,
-              }}
-            />
-            <div className="flex-1 flex items-center gap-1">
-              <Input
-                value={item}
-                onChange={(e) => handleItemChange(index, e.target.value)}
-                onFocus={() => setEditingIndex(index)}
-                onBlur={() => setEditingIndex(null)}
-                className="nodrag h-auto py-0.5 px-1 text-gray-700 font-medium leading-snug border-transparent hover:border-blue-300 focus:border-blue-500 bg-transparent hover:bg-blue-50/50 focus:bg-white transition-colors"
-                style={{ fontSize: `${fontSize}px` }}
-                placeholder="Enter description..."
+    <div className="flex-grow flex flex-col">
+      {isEditing && (
+        <div className="flex items-center justify-end mb-1 -mt-1">
+          <button
+            onClick={handleAddItem}
+            className="nodrag text-blue-500 hover:text-blue-600 flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity"
+            style={{ fontSize: `${Math.max(10, fontSize - 1)}px` }}
+          >
+            <Plus className="h-3 w-3" />
+            <span>Add entry</span>
+          </button>
+        </div>
+      )}
+
+      {localItems.length === 0 ? (
+        <div
+          className="flex-grow flex items-center justify-center py-3 text-gray-400"
+          style={{ fontSize: `${fontSize}px` }}
+        >
+          {isEditing ? (
+            <span className="italic">Click "Add entry" above to add descriptions</span>
+          ) : (
+            <span className="italic">No descriptions available</span>
+          )}
+        </div>
+      ) : (
+        <ul className="space-y-0.5 list-none m-0 p-0">
+          {localItems.map((item, index) => (
+            <li
+              key={index}
+              className={`group/item flex items-start gap-1.5 rounded-sm px-1 py-0.5 -mx-1 transition-colors ${
+                isEditing ? "cursor-text" : ""
+              } ${editingIndex === index ? "bg-blue-50/70" : hoveredIndex === index && isEditing ? "bg-gray-50" : ""}`}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              onClick={() => isEditing && textareaRefs.current[index]?.focus()}
+            >
+              <span
+                className="rounded-full bg-gray-500 flex-shrink-0"
+                style={{
+                  width: `${bulletSize}px`,
+                  height: `${bulletSize}px`,
+                  marginTop: `${(fontSize * 1.4 - bulletSize) / 2}px`,
+                }}
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemoveItem(index)}
-                className="nodrag h-5 w-5 opacity-0 group-hover/item:opacity-100 hover:bg-red-50 hover:text-red-600 transition-opacity flex-shrink-0"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleAddItem}
-        className="nodrag mt-2 text-blue-600 hover:bg-blue-50 h-7 text-xs"
-      >
-        <Plus className="h-3 w-3 mr-1" />
-        Add Item
-      </Button>
+              <div className="flex-1 min-w-0 flex items-start gap-0.5">
+                {isEditing ? (
+                  <textarea
+                    ref={(el) => {
+                      textareaRefs.current[index] = el
+                    }}
+                    value={item}
+                    onChange={(e) => {
+                      handleItemChange(index, e.target.value)
+                      autoResizeTextarea(e.target)
+                    }}
+                    onFocus={() => setEditingIndex(index)}
+                    onBlur={() => setEditingIndex(null)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    rows={1}
+                    className={`nodrag w-full bg-transparent text-gray-700 leading-snug outline-none resize-none overflow-hidden border-b transition-colors ${
+                      editingIndex === index ? "border-blue-400" : "border-transparent hover:border-gray-200"
+                    }`}
+                    style={{
+                      fontSize: `${fontSize}px`,
+                      minHeight: `${fontSize + 4}px`,
+                      lineHeight: "1.4",
+                    }}
+                    placeholder="Enter description..."
+                  />
+                ) : (
+                  <span
+                    className="text-gray-700 leading-snug break-words whitespace-pre-wrap"
+                    style={{
+                      fontSize: `${fontSize}px`,
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    {item}
+                  </span>
+                )}
+                {isEditing && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleRemoveItem(index)
+                    }}
+                    className={`nodrag p-0.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0 ${
+                      hoveredIndex === index || editingIndex === index ? "opacity-100" : "opacity-0"
+                    }`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

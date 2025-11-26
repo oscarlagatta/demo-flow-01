@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { Plus, TicketPlus, Trash2, Save, Check, Loader2, AlertCircle } from "lucide-react"
+import { Plus, TicketPlus, Trash2, Save, Check, Loader2, AlertCircle, Edit3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
@@ -11,9 +11,20 @@ interface NodeToolbarProps {
   onCreateIncident?: () => void
   onDelete?: () => void
   onSave?: () => Promise<void>
+  onEdit?: () => void
+  isEditing?: boolean
+  hasUnsavedChanges?: boolean
 }
 
-export function NodeToolbar({ onAddNode, onCreateIncident, onDelete, onSave }: NodeToolbarProps) {
+export function NodeToolbar({
+  onAddNode,
+  onCreateIncident,
+  onDelete,
+  onSave,
+  onEdit,
+  isEditing,
+  hasUnsavedChanges,
+}: NodeToolbarProps) {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "success" | "error">("idle")
 
   const handleSave = async (e: React.MouseEvent) => {
@@ -51,25 +62,47 @@ export function NodeToolbar({ onAddNode, onCreateIncident, onDelete, onSave }: N
       className="nodrag absolute -top-[34px] left-1/2 -translate-x-1/2 flex items-center gap-1 bg-gray-50/95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-30"
       onClick={(e) => e.stopPropagation()}
     >
-      {onSave && (
+      {onEdit && (
         <Button
           variant="ghost"
           size="icon"
-          className={`h-7 w-7 rounded-full transition-colors ${color}`}
-          onClick={handleSave}
-          disabled={saveState === "saving"}
-          title={
-            saveState === "saving"
-              ? "Saving..."
-              : saveState === "success"
-                ? "Saved!"
-                : saveState === "error"
-                  ? "Failed to save"
-                  : "Save node"
-          }
+          className={`h-7 w-7 rounded-full transition-colors ${
+            isEditing ? "bg-blue-100 text-blue-700" : "hover:bg-blue-50 hover:text-blue-600"
+          }`}
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit()
+          }}
+          title={isEditing ? "Exit edit mode" : "Edit descriptions"}
         >
-          {icon}
+          <Edit3 className="h-4 w-4" />
         </Button>
+      )}
+
+      {onSave && (
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`h-7 w-7 rounded-full transition-colors ${color}`}
+            onClick={handleSave}
+            disabled={saveState === "saving"}
+            title={
+              saveState === "saving"
+                ? "Saving..."
+                : saveState === "success"
+                  ? "Saved!"
+                  : saveState === "error"
+                    ? "Failed to save"
+                    : "Save node"
+            }
+          >
+            {icon}
+          </Button>
+          {hasUnsavedChanges && saveState === "idle" && (
+            <div className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-orange-500 border border-white" />
+          )}
+        </div>
       )}
 
       <Button

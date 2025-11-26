@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Save, Check, AlertCircle } from "lucide-react"
+import { Save, Check, AlertCircle, Edit3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import type { Node, Edge } from "@xyflow/react"
@@ -13,9 +13,20 @@ interface NodeSaveToolbarProps {
   getEdges: () => Edge[]
   getCurrentPosition: () => { x: number; y: number; width: number; height: number }
   onSave: (model: E2ERegionWireFlowModel) => Promise<void>
+  isEditing?: boolean
+  onEdit?: () => void
+  hasUnsavedChanges?: boolean
 }
 
-export function NodeSaveToolbar({ node, getEdges, getCurrentPosition, onSave }: NodeSaveToolbarProps) {
+export function NodeSaveToolbar({
+  node,
+  getEdges,
+  getCurrentPosition,
+  onSave,
+  isEditing = false,
+  onEdit,
+  hasUnsavedChanges = false,
+}: NodeSaveToolbarProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle")
 
@@ -99,12 +110,26 @@ export function NodeSaveToolbar({ node, getEdges, getCurrentPosition, onSave }: 
   return (
     <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
       <div className="bg-white border border-gray-300 rounded-lg shadow-lg px-2 py-1 flex items-center gap-2">
+        {onEdit && (
+          <Button
+            onClick={onEdit}
+            variant="ghost"
+            size="sm"
+            className={`h-7 px-2 text-xs font-medium transition-colors ${
+              isEditing ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : "hover:bg-gray-100"
+            }`}
+            title={isEditing ? "Editing descriptions" : "Edit descriptions"}
+          >
+            <Edit3 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+
         <Button
           onClick={handleSave}
           disabled={isSaving}
           variant="ghost"
           size="sm"
-          className={`h-7 px-2 text-xs font-medium transition-colors ${
+          className={`h-7 px-2 text-xs font-medium transition-colors relative ${
             saveStatus === "success"
               ? "bg-green-50 text-green-700 hover:bg-green-100"
               : saveStatus === "error"
@@ -113,6 +138,10 @@ export function NodeSaveToolbar({ node, getEdges, getCurrentPosition, onSave }: 
           }`}
           title="Save node details and connections"
         >
+          {hasUnsavedChanges && saveStatus === "idle" && !isSaving && (
+            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-orange-500 rounded-full" />
+          )}
+
           {isSaving ? (
             <>
               <div className="h-3.5 w-3.5 mr-1 border-2 border-current border-t-transparent rounded-full animate-spin" />

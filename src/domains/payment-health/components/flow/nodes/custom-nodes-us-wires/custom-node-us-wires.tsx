@@ -18,6 +18,7 @@ import {
 import { computeTrendColors, getTrendColorClass, type TrendColor } from "../../../../utils/trend-color-utils"
 import { LoadingButton } from "../../../loading/loading-button"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
+import { EditableDescriptions } from "./editable-descriptions"
 
 import { NodeToolbar } from "./node-toolbar"
 import { NodeSaveToolbar } from "./node-save-toolbar"
@@ -88,7 +89,7 @@ const CustomNodeUsWires = ({
   onHideSearch,
 }: NodeProps<Node<CustomNodeData>> & { onHideSearch: () => void }) => {
   const updateNodeInternals = useUpdateNodeInternals()
-  const { getNode, getEdges } = useReactFlow()
+  const { getNode, getEdges, updateNode } = useReactFlow()
 
   const { handleUpdateRegionWireFlow } = useRegionWireFlowPresenter()
   const [isSavingNode, setIsSavingNode] = useState(false)
@@ -138,6 +139,10 @@ const CustomNodeUsWires = ({
 
   const { getCurrentPosition, logPosition } = useNodePosition(id, nodeRef)
 
+  const [isEditingDescriptions, setIsEditingDescriptions] = useState(false)
+  const [localDescriptions, setLocalDescriptions] = useState<string[]>([])
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
   const handleSaveNode = useCallback(
     async (model: E2ERegionWireFlowModel) => {
       setSaveStatus("saving")
@@ -155,6 +160,40 @@ const CustomNodeUsWires = ({
     },
     [handleUpdateRegionWireFlow],
   )
+
+  const handleSaveNodeWrapper = async () => {
+    const positionData = getCurrentPosition()
+    if (!positionData) return
+
+    const connectedEdges = getEdges().filter((edge) => edge.source === id || edge.target === id)
+
+    const nodeFlows = connectedEdges.map((edge) => ({
+      sourceId: Number.parseInt(edge.source),
+      targetId: Number.parseInt(edge.target),
+      sourceHandle: edge.sourceHandle || null,
+      targetHandle: edge.targetHandle || null,
+      label: edge.label || null,
+    }))
+
+    const updatedDescriptions = localDescriptions.join("\n")
+
+    const model: E2ERegionWireFlowModel = {
+      id: Number.parseInt(id),
+      name: data.title,
+      positionX: positionData.x,
+      positionY: positionData.y,
+      width: dimensions.width,
+      height: dimensions.height,
+      descriptions: updatedDescriptions,
+      area: data.category || (typeof data.icon === "string" ? data.icon : undefined) || data.parentId || "default",
+      nodeFlows,
+    }
+
+    await handleSaveNode(model)
+    updateNode(id, { ...data, descriptions: updatedDescriptions })
+    setHasUnsavedChanges(false)
+    setIsEditingDescriptions(false)
+  }
 
   const aitNum = useMemo(() => {
     const match = data.subtext.match(/AIT (\d+)/)
@@ -256,6 +295,15 @@ const CustomNodeUsWires = ({
 
   const handleCreateIncident = () => {
     setIsIncidentSheetOpen(true)
+  }
+
+  const handleToggleEdit = () => {
+    setIsEditingDescriptions(!isEditingDescriptions)
+  }
+
+  const handleDescriptionsUpdate = (items: string[]) => {
+    setLocalDescriptions(items)
+    setHasUnsavedChanges(true)
   }
 
   const getCardClassName = () => {
@@ -427,6 +475,20 @@ const CustomNodeUsWires = ({
     return () => window.removeEventListener("error", errorHandler)
   }, [])
 
+  useEffect(() => {
+    if (data.descriptions) {
+      const items = data.descriptions
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => (line.startsWith("-") ? line.substring(1).trim() : line))
+      setLocalDescriptions(items)
+    } else {
+      setLocalDescriptions([])
+    }
+    setHasUnsavedChanges(false)
+  }, [data.descriptions])
+
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />
   }
@@ -455,7 +517,10 @@ const CustomNodeUsWires = ({
           node={{ id, data, position } as Node<CustomNodeData>}
           getEdges={getEdges}
           getCurrentPosition={getCurrentPosition}
-          onSave={handleSaveNode}
+          onSave={handleSaveNodeWrapper}
+          isEditing={isEditingDescriptions}
+          onEdit={handleToggleEdit}
+          hasUnsavedChanges={hasUnsavedChanges}
         />
 
         {data.isSelected && (
@@ -463,7 +528,10 @@ const CustomNodeUsWires = ({
             onAddNode={handleAddNode}
             onCreateIncident={handleCreateIncident}
             onDelete={handleDeleteNode}
-            onSave={handleSaveNode}
+            onSave={handleSaveNodeWrapper}
+            onEdit={handleToggleEdit}
+            isEditing={isEditingDescriptions}
+            hasUnsavedChanges={hasUnsavedChanges}
           />
         )}
 
@@ -526,7 +594,15 @@ const CustomNodeUsWires = ({
           </CardHeader>
 
           <CardContent className="p-2 pt-1.5 flex flex-col min-h-[80px]">
-            {data.descriptions && descriptionItems.length > 0 ? (
+            {isEditingDescriptions ? (
+              <EditableDescriptions
+                items={localDescriptions}
+                onUpdate={handleDescriptionsUpdate}
+                bulletSize={bulletSize}
+                fontSize={descriptionFontSize}
+                columns={descriptionColumns}
+              />
+            ) : data.descriptions && descriptionItems.length > 0 ? (
               <div
                 className={`flex-grow pl-2 grid gap-x-4 gap-y-2 ${
                   descriptionColumns === 3 ? "grid-cols-3" : descriptionColumns === 2 ? "grid-cols-2" : "grid-cols-1"
@@ -551,13 +627,8 @@ const CustomNodeUsWires = ({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col justify-center items-center gap-1.5 flex-grow py-2">
-                <span
-                  className="text-gray-500 text-center italic leading-tight"
-                  style={{ fontSize: `${Math.max(10, fontSize * 0.85)}px` }}
-                >
-                  {aitNum ? `No data available for this AIT (${aitNum})` : "No data available for this node"}
-                </span>
+              <div className="flex-grow flex items-center justify-center text-gray-400 text-sm">
+                {isEditingDescriptions ? null : "No descriptions"}
               </div>
             )}
 

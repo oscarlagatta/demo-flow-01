@@ -513,12 +513,10 @@ const CustomNodeUsWires = ({
         />
 
         <NodeSaveToolbar
-          node={{ id, data, position } as Node<CustomNodeData>}
-          getEdges={getEdges}
-          getCurrentPosition={getCurrentPosition}
+          nodeTitle={data.title}
           onSave={handleSaveNodeWrapper}
           isEditing={isEditingDescriptions}
-          onEdit={handleToggleEdit}
+          onEdit={() => setIsEditingDescriptions(!isEditingDescriptions)}
           hasUnsavedChanges={hasUnsavedChanges}
         />
 

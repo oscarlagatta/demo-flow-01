@@ -20,7 +20,6 @@ import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 import { EditableDescriptions } from "./editable-descriptions"
 
 import { NodeToolbar } from "./node-toolbar"
-import { NodeSaveToolbar } from "./node-save-toolbar"
 import { PositionDisplayOverlay } from "./position-display-overlay"
 
 import type { CustomNodeData } from "@/types/custom-node-data"
@@ -512,13 +511,17 @@ const CustomNodeUsWires = ({
           isVisible={isDragging || isResizing}
         />
 
-        <NodeSaveToolbar
-          nodeTitle={data.title}
-          onSave={handleSaveNodeWrapper}
-          isEditing={isEditingDescriptions}
-          onEdit={() => setIsEditingDescriptions(!isEditingDescriptions)}
-          hasUnsavedChanges={hasUnsavedChanges}
-        />
+        <div className="nodrag relative">
+          <NodeToolbar
+            onAddNode={handleAddNode}
+            onCreateIncident={handleCreateIncident}
+            onDelete={handleDeleteNode}
+            onSave={handleSaveNodeWrapper}
+            onEdit={handleToggleEdit}
+            isEditing={isEditingDescriptions}
+            hasUnsavedChanges={hasUnsavedChanges}
+          />
+        </div>
 
         {data.isSelected && (
           <NodeToolbar

@@ -36,7 +36,7 @@ const RESIZE_CONSTRAINTS = {
   maxHeight: 600,
 }
 
-const buildRegionWireFlowModel = (
+export const buildRegionWireFlowModel = (
   node: Node<CustomNodeData>,
   currentPosition: { x: number; y: number; width: number; height: number } | null,
   connectedEdges: any[],

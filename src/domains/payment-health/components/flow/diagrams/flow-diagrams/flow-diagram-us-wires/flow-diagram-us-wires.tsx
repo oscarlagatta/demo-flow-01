@@ -20,9 +20,10 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useStore,
+  useReactFlow,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { AlertCircle, Loader2, RefreshCw, Save, Check } from "lucide-react"
+import { AlertCircle, Loader2, RefreshCw, Save, Check, CheckCircle2, XCircle } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,6 +40,8 @@ import SectionBackgroundNode from "@/domains/payment-health/components/flow/node
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
 import { useFlowSaveManager } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { useEdgeRemovalManager } from "@/domains/payment-health/hooks/use-edge-removal-manager"
+import { buildRegionWireFlowModel } from "@/domains/payment-health/utils/build-region-wire-flow-model"
+import { handleUpdateRegionWireFlow } from "@/domains/payment-health/hooks/use-update-region-wire-flow"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -146,6 +149,15 @@ const FlowDiagramUsWiresComponent = ({
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null)
   const [lastRefetch, setLastRefetch] = useState<Date | null>(null)
   const [canvasHeight, setCanvasHeight] = useState<number>(500) // default height
+
+  const [selectedNodes, setSelectedNodes] = useState<string[]>([])
+  const [isBulkSaving, setIsBulkSaving] = useState(false)
+  const [bulkSaveResults, setBulkSaveResults] = useState<{
+    success: number
+    failed: number
+    total: number
+  } | null>(null)
+
   // Table mode state
   const [tableMode, setTableMode] = useState<{
     show: boolean
@@ -156,6 +168,8 @@ const FlowDiagramUsWiresComponent = ({
     aitNum: null,
     action: null,
   })
+
+  const { getNodes, getEdges, updateNode } = useReactFlow()
   const width = useStore((state) => state.width)
   const isAuthorized = true // hasRequiredRole();
   const {
@@ -179,6 +193,94 @@ const FlowDiagramUsWiresComponent = ({
   })
 
   const { trackEdgeRemoval, persistEdgeRemovals, removedEdgesCount } = useEdgeRemovalManager()
+
+  const handleBulkSave = useCallback(async () => {
+    if (selectedNodes.length === 0) return
+
+    setIsBulkSaving(true)
+    setBulkSaveResults(null)
+
+    let successCount = 0
+    let failedCount = 0
+
+    console.log("[v0] Starting bulk save for", selectedNodes.length, "nodes")
+
+    const savePromises = selectedNodes.map(async (nodeId) => {
+      try {
+        const node = nodes.find((n) => n.id === nodeId)
+        if (!node) {
+          console.log("[v0] Node not found:", nodeId)
+          failedCount++
+          return { nodeId, success: false, error: "Node not found" }
+        }
+
+        const connectedEdges = edges.filter((edge) => edge.source === nodeId || edge.target === nodeId)
+
+        const currentPosition = {
+          x: node.position.x,
+          y: node.position.y,
+          width: (node as any).width || node.data.width || 180,
+          height: (node as any).height || node.data.height || 90,
+        }
+
+        const model = buildRegionWireFlowModel(node, currentPosition, connectedEdges)
+
+        console.log("[v0] Saving node:", nodeId, model)
+
+        await handleUpdateRegionWireFlow(model)
+
+        successCount++
+        return { nodeId, success: true }
+      } catch (error) {
+        console.log("[v0] Failed to save node:", nodeId, error)
+        failedCount++
+        return { nodeId, success: false, error }
+      }
+    })
+
+    const results = await Promise.allSettled(savePromises)
+
+    const finalSuccessCount = results.filter((r) => r.status === "fulfilled" && (r.value as any).success).length
+    const finalFailedCount = results.filter((r) => r.status === "rejected" || !(r.value as any).success).length
+
+    setIsBulkSaving(false)
+    setBulkSaveResults({
+      success: finalSuccessCount,
+      failed: finalFailedCount,
+      total: selectedNodes.length,
+    })
+
+    console.log("[v0] Bulk save complete:", {
+      success: finalSuccessCount,
+      failed: finalFailedCount,
+      total: selectedNodes.length,
+    })
+
+    if (finalSuccessCount === selectedNodes.length) {
+      toast.success("Bulk Save Complete", {
+        description: `Successfully saved ${finalSuccessCount} node${finalSuccessCount > 1 ? "s" : ""}`,
+      })
+    } else if (finalSuccessCount > 0) {
+      toast.warning("Bulk Save Partial", {
+        description: `Saved ${finalSuccessCount} of ${selectedNodes.length} nodes. ${finalFailedCount} failed.`,
+      })
+    } else {
+      toast.error("Bulk Save Failed", {
+        description: `Failed to save all ${selectedNodes.length} nodes`,
+      })
+    }
+
+    setTimeout(() => {
+      setBulkSaveResults(null)
+      setSelectedNodes([])
+    }, 5000)
+  }, [selectedNodes, nodes, edges])
+
+  const onSelectionChange = useCallback(({ nodes: selectedNodesList }: { nodes: Node[] }) => {
+    const selectedIds = selectedNodesList.map((node) => node.id)
+    setSelectedNodes(selectedIds)
+    console.log("[v0] Selected nodes:", selectedIds)
+  }, [])
 
   const handleRefetch = async () => {
     try {
@@ -645,18 +747,55 @@ const FlowDiagramUsWiresComponent = ({
             onNodeDragStart={onNodeDragStart}
             onNodeDrag={onNodeDrag}
             onNodeDragStop={onNodeDragStop}
+            onSelectionChange={onSelectionChange}
             nodeTypes={nodeTypes}
             proOptions={{ hideAttribution: true }}
             className="bg-white"
             style={{ background: "#eeeff3ff" }}
             panOnDrag={false}
-            elementsSelectable={false}
+            elementsSelectable={true}
+            multiSelectionKeyCode="Shift"
             minZoom={1}
             maxZoom={1}
           >
             <Controls />
             <Background gap={16} size={1} />
           </ReactFlow>
+
+          {selectedNodes.length > 1 && (
+            <div className="absolute bottom-4 right-4 z-20">
+              <Button
+                onClick={handleBulkSave}
+                disabled={isBulkSaving}
+                size="lg"
+                className="gap-2 bg-green-600 shadow-lg hover:bg-green-700"
+              >
+                {isBulkSaving ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Saving {selectedNodes.length} nodes...
+                  </>
+                ) : bulkSaveResults ? (
+                  <>
+                    {bulkSaveResults.success === bulkSaveResults.total ? (
+                      <CheckCircle2 className="h-5 w-5 text-white" />
+                    ) : bulkSaveResults.failed === bulkSaveResults.total ? (
+                      <XCircle className="h-5 w-5 text-white" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-white" />
+                    )}
+                    {bulkSaveResults.success}/{bulkSaveResults.total} Saved
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-5 w-5" />
+                    Save All ({selectedNodes.length})
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
           {/* Connected System Panel */}
           {selectedNodeId && (
             <DraggablePanel
@@ -753,3 +892,5 @@ export function FlowDiagramUsWires({ isMonitorMode = false }: FlowDiagramUsWires
     </QueryClientProvider>
   )
 }
+
+export { buildRegionWireFlowModel }

@@ -18,4 +18,5 @@ export interface CustomNodeData {
   position?: { x: number; y: number } // Current position coordinates
   descriptions?: string // Multi-line string separated by \n, e.g., "Handles origination requests\n- receives inbound\n- Send messages"
   category?: string // Node category that maps to 'area' in E2ERegionWireFlowModel (e.g., "origination", "validation", etc.)
+  hasUnsavedChanges?: boolean // Added to track node save state
 }

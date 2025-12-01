@@ -5,25 +5,18 @@ import type React from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
   addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
   Background,
   Controls,
-  type Edge,
-  type EdgeChange,
   type Node,
-  type NodeChange,
   type NodeTypes,
   type OnConnect,
-  type OnEdgesChange,
-  type OnNodesChange,
   ReactFlow,
   ReactFlowProvider,
   useStore,
   useReactFlow,
 } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
-import { AlertCircle, Loader2, RefreshCw, Save, Check, CheckCircle2, XCircle } from "lucide-react"
+import { AlertCircle, Loader2, RefreshCw, Save, Check } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -40,8 +33,11 @@ import SectionBackgroundNode from "@/domains/payment-health/components/flow/node
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
 import { useFlowSaveManager } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { useEdgeRemovalManager } from "@/domains/payment-health/hooks/use-edge-removal-manager"
-import { buildRegionWireFlowModel } from "@/domains/payment-health/utils/build-region-wire-flow-model"
-import { handleUpdateRegionWireFlow } from "@/domains/payment-health/hooks/use-update-region-wire-flow"
+import { buildRegionWireFlowModel } from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
+import { useRegionWireFlowPresenter } from "@/domains/payment-health/hooks/use-region-wire-flow-presenter"
+import { useNodesState } from "@/domains/payment-health/hooks/use-nodes-state"
+import { useEdgesState } from "@/domains/payment-health/hooks/use-edges-state"
+import { nodePersistenceService } from "@/domains/payment-health/services/node-persistence-service"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -141,8 +137,9 @@ const FlowDiagramUsWiresComponent = ({
 }) => {
   // const { hasRequiredRole } = useAuthzRules();
   const { showTableView } = useTransactionSearchUsWiresContext()
-  const [nodes, setNodes] = useState<Node[]>(initialNodes)
-  const [edges, setEdges] = useState<Edge[]>(initialEdges)
+  const { handleUpdateRegionWireFlow } = useRegionWireFlowPresenter()
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [connectedNodeIds, setConnectedNodeIds] = useState<Set<string>>(new Set())
   const [connectedEdgeIds, setConnectedEdgeIds] = useState<Set<string>>(new Set())
@@ -194,87 +191,115 @@ const FlowDiagramUsWiresComponent = ({
 
   const { trackEdgeRemoval, persistEdgeRemovals, removedEdgesCount } = useEdgeRemovalManager()
 
+  const { pendingCount, isSaving, lastSaveTime, saveError, saveAll, clearError } = useFlowSaveManager()
+
+  const nodesWithUnsavedDescriptions = useMemo(() => {
+    return nodes.filter((node) => node.data.hasUnsavedChanges === true).map((node) => node.id)
+  }, [nodes])
+
+  const nodesWithUnsavedDimensions = useMemo(() => {
+    const pendingUpdates = nodePersistenceService.getPendingUpdates()
+    return pendingUpdates.map((update) => update.id)
+  }, [pendingCount])
+
+  const nodesWithUnsavedChanges = useMemo(() => {
+    const unsavedSet = new Set([...nodesWithUnsavedDescriptions, ...nodesWithUnsavedDimensions])
+    return Array.from(unsavedSet)
+  }, [nodesWithUnsavedDescriptions, nodesWithUnsavedDimensions])
+
   const handleBulkSave = useCallback(async () => {
-    if (selectedNodes.length === 0) return
+    if (nodesWithUnsavedChanges.length === 0) return
 
     setIsBulkSaving(true)
-    setBulkSaveResults(null)
+    console.log("[v0] Starting bulk save for", nodesWithUnsavedChanges.length, "nodes with unsaved changes")
 
     let successCount = 0
     let failedCount = 0
+    const errors: Array<{ nodeId: string; error: string }> = []
 
-    console.log("[v0] Starting bulk save for", selectedNodes.length, "nodes")
-
-    const savePromises = selectedNodes.map(async (nodeId) => {
-      try {
-        const node = nodes.find((n) => n.id === nodeId)
-        if (!node) {
-          console.log("[v0] Node not found:", nodeId)
-          failedCount++
-          return { nodeId, success: false, error: "Node not found" }
+    try {
+      // Save all dimension/position changes first
+      if (pendingCount > 0) {
+        console.log("[v0] Saving dimension changes for", pendingCount, "nodes")
+        const dimensionResult = await saveAll()
+        if (!dimensionResult.success) {
+          failedCount += pendingCount
+          errors.push({ nodeId: "dimensions", error: dimensionResult.error || "Failed to save dimensions" })
+        } else {
+          successCount += dimensionResult.updatedNodes?.length || 0
         }
-
-        const connectedEdges = edges.filter((edge) => edge.source === nodeId || edge.target === nodeId)
-
-        const currentPosition = {
-          x: node.position.x,
-          y: node.position.y,
-          width: (node as any).width || node.data.width || 180,
-          height: (node as any).height || node.data.height || 90,
-        }
-
-        const model = buildRegionWireFlowModel(node, currentPosition, connectedEdges)
-
-        console.log("[v0] Saving node:", nodeId, model)
-
-        await handleUpdateRegionWireFlow(model)
-
-        successCount++
-        return { nodeId, success: true }
-      } catch (error) {
-        console.log("[v0] Failed to save node:", nodeId, error)
-        failedCount++
-        return { nodeId, success: false, error }
       }
-    })
 
-    const results = await Promise.allSettled(savePromises)
+      // Save description changes for nodes
+      const nodesNeedingDescriptionSave = nodes.filter(
+        (node) => node.data.hasUnsavedChanges === true && nodesWithUnsavedChanges.includes(node.id),
+      )
 
-    const finalSuccessCount = results.filter((r) => r.status === "fulfilled" && (r.value as any).success).length
-    const finalFailedCount = results.filter((r) => r.status === "rejected" || !(r.value as any).success).length
+      if (nodesNeedingDescriptionSave.length > 0) {
+        console.log("[v0] Saving description changes for", nodesNeedingDescriptionSave.length, "nodes")
 
-    setIsBulkSaving(false)
-    setBulkSaveResults({
-      success: finalSuccessCount,
-      failed: finalFailedCount,
-      total: selectedNodes.length,
-    })
+        const savePromises = nodesNeedingDescriptionSave.map(async (node) => {
+          try {
+            const connectedEdges = edges.filter((edge) => edge.source === node.id || edge.target === node.id)
 
-    console.log("[v0] Bulk save complete:", {
-      success: finalSuccessCount,
-      failed: finalFailedCount,
-      total: selectedNodes.length,
-    })
+            const currentPosition = {
+              x: node.position.x,
+              y: node.position.y,
+              width: (node as any).width || node.data.width || 180,
+              height: (node as any).height || node.data.height || 90,
+            }
 
-    if (finalSuccessCount === selectedNodes.length) {
-      toast.success("Bulk Save Complete", {
-        description: `Successfully saved ${finalSuccessCount} node${finalSuccessCount > 1 ? "s" : ""}`,
+            const model = buildRegionWireFlowModel(node, currentPosition, connectedEdges)
+            await handleUpdateRegionWireFlow(model)
+
+            // Update node to clear unsaved state
+            setNodes((nds) =>
+              nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, hasUnsavedChanges: false } } : n)),
+            )
+
+            successCount++
+            return { nodeId: node.id, success: true }
+          } catch (error) {
+            failedCount++
+            const errorMsg = error instanceof Error ? error.message : "Unknown error"
+            errors.push({ nodeId: node.id, error: errorMsg })
+            return { nodeId: node.id, success: false, error: errorMsg }
+          }
+        })
+
+        await Promise.allSettled(savePromises)
+      }
+
+      console.log("[v0] Bulk save complete:", { success: successCount, failed: failedCount })
+
+      // Show appropriate toast notification
+      if (failedCount === 0) {
+        toast.success("All Changes Saved", {
+          description: `Successfully saved ${successCount} node${successCount > 1 ? "s" : ""}`,
+          icon: <Check className="h-4 w-4 text-green-500" />,
+        })
+      } else if (successCount > 0) {
+        toast.warning("Partial Save Complete", {
+          description: `Saved ${successCount} of ${nodesWithUnsavedChanges.length} nodes. ${failedCount} failed.`,
+          icon: <AlertCircle className="h-4 w-4 text-orange-500" />,
+        })
+      } else {
+        toast.error("Save Failed", {
+          description: `Failed to save all ${nodesWithUnsavedChanges.length} nodes`,
+          icon: <AlertCircle className="h-4 w-4 text-red-500" />,
+        })
+      }
+    } catch (error) {
+      console.error("[v0] Bulk save error:", error)
+      toast.error("Save Failed", {
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
       })
-    } else if (finalSuccessCount > 0) {
-      toast.warning("Bulk Save Partial", {
-        description: `Saved ${finalSuccessCount} of ${selectedNodes.length} nodes. ${finalFailedCount} failed.`,
-      })
-    } else {
-      toast.error("Bulk Save Failed", {
-        description: `Failed to save all ${selectedNodes.length} nodes`,
-      })
+    } finally {
+      setIsBulkSaving(false)
     }
+  }, [nodesWithUnsavedChanges, nodes, edges, pendingCount, saveAll, handleUpdateRegionWireFlow, setNodes])
 
-    setTimeout(() => {
-      setBulkSaveResults(null)
-      setSelectedNodes([])
-    }, 5000)
-  }, [selectedNodes, nodes, edges])
+  const handleSave = handleBulkSave
 
   const onSelectionChange = useCallback(({ nodes: selectedNodesList }: { nodes: Node[] }) => {
     const selectedIds = selectedNodesList.map((node) => node.id)
@@ -357,29 +382,6 @@ const FlowDiagramUsWiresComponent = ({
       .sort()
   }, [selectedNodeId, connectedNodeIds, nodes])
 
-  const { pendingCount, isSaving, lastSaveTime, saveError, saveAll, clearError } = useFlowSaveManager()
-
-  const handleSave = async () => {
-    const result = await saveAll()
-
-    if (result.success) {
-      toast.success("Changes saved successfully!", {
-        description: `${result.updatedNodes?.length || 0} node(s) updated`,
-        icon: <Check className="h-4 w-4 text-green-500" />,
-      })
-    } else if (result.conflicts) {
-      toast.error("Save conflicts detected", {
-        description: "Please refresh the page and try again",
-        icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-      })
-    } else {
-      toast.error("Failed to save changes", {
-        description: result.error || "Please try again",
-        icon: <AlertCircle className="h-4 w-4 text-red-500" />,
-      })
-    }
-  }
-
   useEffect(() => {
     if (width > 0) {
       setNodes((currentNodes) => {
@@ -449,11 +451,6 @@ const FlowDiagramUsWiresComponent = ({
     }
     updateCanvasHeight()
   }, [nodes])
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes: NodeChange<Node>[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [setNodes],
-  )
-
   const onNodeDragStart = useCallback((_event: React.MouseEvent, node: Node) => {
     setDraggingNodeId(node.id)
   }, [])
@@ -470,32 +467,6 @@ const FlowDiagramUsWiresComponent = ({
   const onNodeDragStop = useCallback(() => {
     setDraggingNodeId(null)
   }, [])
-
-  const onEdgesChange: OnEdgesChange = useCallback(
-    (changes: EdgeChange<Edge>[]) => {
-      const removedEdges = changes.filter((change) => change.type === "remove")
-
-      if (removedEdges.length > 0) {
-        removedEdges.forEach((change) => {
-          if (change.type === "remove") {
-            const edgeId = change.id
-            const edge = edges.find((e) => e.id === edgeId)
-
-            if (edge) {
-              trackEdgeRemoval(edge)
-
-              toast.info("Connection removed", {
-                description: `${removedEdgesCount + 1} pending change(s). Save nodes to persist.`,
-              })
-            }
-          }
-        })
-      }
-
-      setEdges((eds) => applyEdgeChanges(changes, eds))
-    },
-    [setEdges, edges, trackEdgeRemoval, removedEdgesCount],
-  )
 
   const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), [setEdges])
 
@@ -686,16 +657,16 @@ const FlowDiagramUsWiresComponent = ({
             )}
 
             {/* Save Button */}
-            {pendingCount > 0 && (
+            {nodesWithUnsavedChanges.length > 0 && (
               <Button
                 onClick={handleSave}
-                disabled={isSaving}
+                disabled={isSaving || isBulkSaving}
                 variant="default"
                 size="sm"
-                className="h-8 gap-2 bg-blue-600 shadow-sm hover:bg-blue-700"
-                title={`Save ${pendingCount} pending change(s)`}
+                className="relative h-8 gap-2 bg-orange-600 shadow-sm hover:bg-orange-700 animate-pulse"
+                title={`Save ${nodesWithUnsavedChanges.length} node(s) with unsaved changes`}
               >
-                {isSaving ? (
+                {isSaving || isBulkSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Saving...
@@ -703,9 +674,11 @@ const FlowDiagramUsWiresComponent = ({
                 ) : (
                   <>
                     <Save className="h-4 w-4" />
-                    Save ({pendingCount})
+                    Save All ({nodesWithUnsavedChanges.length})
                   </>
                 )}
+                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500 animate-ping" />
+                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500" />
               </Button>
             )}
 
@@ -761,40 +734,6 @@ const FlowDiagramUsWiresComponent = ({
             <Controls />
             <Background gap={16} size={1} />
           </ReactFlow>
-
-          {selectedNodes.length > 1 && (
-            <div className="absolute bottom-4 right-4 z-20">
-              <Button
-                onClick={handleBulkSave}
-                disabled={isBulkSaving}
-                size="lg"
-                className="gap-2 bg-green-600 shadow-lg hover:bg-green-700"
-              >
-                {isBulkSaving ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Saving {selectedNodes.length} nodes...
-                  </>
-                ) : bulkSaveResults ? (
-                  <>
-                    {bulkSaveResults.success === bulkSaveResults.total ? (
-                      <CheckCircle2 className="h-5 w-5 text-white" />
-                    ) : bulkSaveResults.failed === bulkSaveResults.total ? (
-                      <XCircle className="h-5 w-5 text-white" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-white" />
-                    )}
-                    {bulkSaveResults.success}/{bulkSaveResults.total} Saved
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-5 w-5" />
-                    Save All ({selectedNodes.length})
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
 
           {/* Connected System Panel */}
           {selectedNodeId && (

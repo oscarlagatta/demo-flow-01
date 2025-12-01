@@ -308,19 +308,19 @@ const CustomNodeUsWires = ({
     let baseClass = "border-2 border-[rgb(10, 49,97)] shadow-md cursor-pointer transition-all duration-200"
 
     if (isLoading || isFetching) {
-      baseClass += " bg-gray-50"
-    } else if (isError) {
-      baseClass += " bg-red-50 border-red-200"
-    } else {
-      baseClass += " bg-white"
+      baseClass += " animate-pulse"
     }
 
-    if (data.isSelected && !isLoading) {
-      baseClass += " ring-2 ring-blue-700 shadow-lg scale-105"
-    } else if (data.isConnected && !isLoading) {
-      baseClass += " ring-2 ring-blue-300 shadow-lg"
+    if (hasUnsavedChanges) {
+      baseClass += " ring-2 ring-orange-400 ring-offset-2"
+    }
+
+    if (data.isSelected) {
+      baseClass += " ring-4 ring-blue-400 ring-offset-2 scale-105 shadow-xl"
+    } else if (data.isConnected) {
+      baseClass += " ring-2 ring-blue-300"
     } else if (data.isDimmed) {
-      baseClass += " opacity-40"
+      baseClass += " opacity-30"
     }
 
     return baseClass
@@ -486,6 +486,12 @@ const CustomNodeUsWires = ({
     }
     setHasUnsavedChanges(false)
   }, [data.descriptions])
+
+  useEffect(() => {
+    if (updateNode) {
+      updateNode(id, { ...data, hasUnsavedChanges })
+    }
+  }, [hasUnsavedChanges, id, data, updateNode])
 
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />

@@ -31,13 +31,11 @@ import { TransactionDetailsTableAgGrid } from "@/domains/payment-health/componen
 import CustomNodeUsWires from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
 import SectionBackgroundNode from "@/domains/payment-health/components/flow/nodes/expandable-charts/section-background-node"
 import { AnimatedInfoSection } from "../../../../indicators/info-section/animated-info-section"
-import { useFlowSaveManager } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { useEdgeRemovalManager } from "@/domains/payment-health/hooks/use-edge-removal-manager"
 import { buildRegionWireFlowModel } from "@/domains/payment-health/components/flow/nodes/custom-nodes-us-wires/custom-node-us-wires"
 import { useRegionWireFlowPresenter } from "@/domains/payment-health/hooks/use-region-wire-flow-presenter"
 import { useNodesState } from "@/domains/payment-health/hooks/use-nodes-state"
 import { useEdgesState } from "@/domains/payment-health/hooks/use-edges-state"
-import { nodePersistenceService } from "@/domains/payment-health/services/node-persistence-service"
 
 const SECTION_IDS = ["bg-origination", "bg-validation", "bg-middleware", "bg-processing"]
 
@@ -149,11 +147,7 @@ const FlowDiagramUsWiresComponent = ({
 
   const [selectedNodes, setSelectedNodes] = useState<string[]>([])
   const [isBulkSaving, setIsBulkSaving] = useState(false)
-  const [bulkSaveResults, setBulkSaveResults] = useState<{
-    success: number
-    failed: number
-    total: number
-  } | null>(null)
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null)
 
   // Table mode state
   const [tableMode, setTableMode] = useState<{
@@ -191,88 +185,57 @@ const FlowDiagramUsWiresComponent = ({
 
   const { trackEdgeRemoval, persistEdgeRemovals, removedEdgesCount } = useEdgeRemovalManager()
 
-  const { pendingCount, isSaving, lastSaveTime, saveError, saveAll, clearError } = useFlowSaveManager()
-
-  const nodesWithUnsavedDescriptions = useMemo(() => {
+  const nodesWithUnsavedChanges = useMemo(() => {
     return nodes.filter((node) => node.data.hasUnsavedChanges === true).map((node) => node.id)
   }, [nodes])
-
-  const nodesWithUnsavedDimensions = useMemo(() => {
-    const pendingUpdates = nodePersistenceService.getPendingUpdates()
-    return pendingUpdates.map((update) => update.id)
-  }, [pendingCount])
-
-  const nodesWithUnsavedChanges = useMemo(() => {
-    const unsavedSet = new Set([...nodesWithUnsavedDescriptions, ...nodesWithUnsavedDimensions])
-    return Array.from(unsavedSet)
-  }, [nodesWithUnsavedDescriptions, nodesWithUnsavedDimensions])
 
   const handleBulkSave = useCallback(async () => {
     if (nodesWithUnsavedChanges.length === 0) return
 
     setIsBulkSaving(true)
-    console.log("[v0] Starting bulk save for", nodesWithUnsavedChanges.length, "nodes with unsaved changes")
 
     let successCount = 0
     let failedCount = 0
-    const errors: Array<{ nodeId: string; error: string }> = []
 
     try {
-      // Save all dimension/position changes first
-      if (pendingCount > 0) {
-        console.log("[v0] Saving dimension changes for", pendingCount, "nodes")
-        const dimensionResult = await saveAll()
-        if (!dimensionResult.success) {
-          failedCount += pendingCount
-          errors.push({ nodeId: "dimensions", error: dimensionResult.error || "Failed to save dimensions" })
-        } else {
-          successCount += dimensionResult.updatedNodes?.length || 0
-        }
-      }
+      // Get all nodes with unsaved changes
+      const nodesToSave = nodes.filter((node) => nodesWithUnsavedChanges.includes(node.id))
 
-      // Save description changes for nodes
-      const nodesNeedingDescriptionSave = nodes.filter(
-        (node) => node.data.hasUnsavedChanges === true && nodesWithUnsavedChanges.includes(node.id),
-      )
+      // Save all nodes using handleUpdateRegionWireFlow
+      const savePromises = nodesToSave.map(async (node) => {
+        try {
+          const connectedEdges = edges.filter((edge) => edge.source === node.id || edge.target === node.id)
 
-      if (nodesNeedingDescriptionSave.length > 0) {
-        console.log("[v0] Saving description changes for", nodesNeedingDescriptionSave.length, "nodes")
-
-        const savePromises = nodesNeedingDescriptionSave.map(async (node) => {
-          try {
-            const connectedEdges = edges.filter((edge) => edge.source === node.id || edge.target === node.id)
-
-            const currentPosition = {
-              x: node.position.x,
-              y: node.position.y,
-              width: (node as any).width || node.data.width || 180,
-              height: (node as any).height || node.data.height || 90,
-            }
-
-            const model = buildRegionWireFlowModel(node, currentPosition, connectedEdges)
-            await handleUpdateRegionWireFlow(model)
-
-            // Update node to clear unsaved state
-            setNodes((nds) =>
-              nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, hasUnsavedChanges: false } } : n)),
-            )
-
-            successCount++
-            return { nodeId: node.id, success: true }
-          } catch (error) {
-            failedCount++
-            const errorMsg = error instanceof Error ? error.message : "Unknown error"
-            errors.push({ nodeId: node.id, error: errorMsg })
-            return { nodeId: node.id, success: false, error: errorMsg }
+          const currentPosition = {
+            x: node.position.x,
+            y: node.position.y,
+            width: (node as any).width || node.data.width || 180,
+            height: (node as any).height || node.data.height || 90,
           }
-        })
 
-        await Promise.allSettled(savePromises)
-      }
+          const model = buildRegionWireFlowModel(node, currentPosition, connectedEdges)
 
-      console.log("[v0] Bulk save complete:", { success: successCount, failed: failedCount })
+          await handleUpdateRegionWireFlow(model)
 
-      // Show appropriate toast notification
+          // Clear the hasUnsavedChanges flag after successful save
+          setNodes((nds) =>
+            nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, hasUnsavedChanges: false } } : n)),
+          )
+
+          successCount++
+          return { nodeId: node.id, success: true }
+        } catch (error) {
+          failedCount++
+          return { nodeId: node.id, success: false, error }
+        }
+      })
+
+      await Promise.allSettled(savePromises)
+
+      // Update last save time
+      setLastSaveTime(new Date())
+
+      // Show toast notification with results
       if (failedCount === 0) {
         toast.success("All Changes Saved", {
           description: `Successfully saved ${successCount} node${successCount > 1 ? "s" : ""}`,
@@ -290,14 +253,13 @@ const FlowDiagramUsWiresComponent = ({
         })
       }
     } catch (error) {
-      console.error("[v0] Bulk save error:", error)
       toast.error("Save Failed", {
         description: error instanceof Error ? error.message : "An unexpected error occurred",
       })
     } finally {
       setIsBulkSaving(false)
     }
-  }, [nodesWithUnsavedChanges, nodes, edges, pendingCount, saveAll, handleUpdateRegionWireFlow, setNodes])
+  }, [nodesWithUnsavedChanges, nodes, edges, handleUpdateRegionWireFlow, setNodes])
 
   const handleSave = handleBulkSave
 
@@ -464,9 +426,15 @@ const FlowDiagramUsWiresComponent = ({
     )
   }, [])
 
-  const onNodeDragStop = useCallback(() => {
-    setDraggingNodeId(null)
-  }, [])
+  const onNodeDragStop = useCallback(
+    (_event: React.MouseEvent, node: Node, _nodes: Node[]) => {
+      setDraggingNodeId(null)
+
+      // Mark node as having unsaved changes
+      setNodes((nds) => nds.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, hasUnsavedChanges: true } } : n)))
+    },
+    [setNodes],
+  )
 
   const onConnect: OnConnect = useCallback((connection) => setEdges((eds) => addEdge(connection, eds)), [setEdges])
 
@@ -649,37 +617,8 @@ const FlowDiagramUsWiresComponent = ({
         <>
           {/* Refresh Data Button - Icon only, docked top-right */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-            {lastSaveTime && !isSaving && pendingCount === 0 && (
-              <span className="text-muted-foreground text-xs">Saved: {lastSaveTime.toLocaleTimeString()}</span>
-            )}
             {lastRefetch && !isFetching && (
               <span className="text-muted-foreground text-xs">Data updated: {lastRefetch.toLocaleTimeString()}</span>
-            )}
-
-            {/* Save Button */}
-            {nodesWithUnsavedChanges.length > 0 && (
-              <Button
-                onClick={handleSave}
-                disabled={isSaving || isBulkSaving}
-                variant="default"
-                size="sm"
-                className="relative h-8 gap-2 bg-orange-600 shadow-sm hover:bg-orange-700 animate-pulse"
-                title={`Save ${nodesWithUnsavedChanges.length} node(s) with unsaved changes`}
-              >
-                {isSaving || isBulkSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Save All ({nodesWithUnsavedChanges.length})
-                  </>
-                )}
-                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500 animate-ping" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-orange-500" />
-              </Button>
             )}
 
             {/* Refresh Button */}
@@ -695,21 +634,6 @@ const FlowDiagramUsWiresComponent = ({
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
             </Button>
           </div>
-
-          {saveError && (
-            <div className="absolute top-16 right-4 z-20 max-w-sm rounded-lg border border-red-200 bg-red-50 p-3 shadow-lg">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-800">Save Error</p>
-                  <p className="text-xs text-red-600 mt-1">{saveError}</p>
-                </div>
-                <button onClick={clearError} className="text-red-400 hover:text-red-600" aria-label="Dismiss error">
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
 
           <ReactFlow
             nodes={nodesForFlow}
@@ -773,6 +697,37 @@ const FlowDiagramUsWiresComponent = ({
                 </div>
               </div>
             </DraggablePanel>
+          )}
+
+          {/* Save All Button */}
+          {nodesWithUnsavedChanges.length > 0 && (
+            <div className="absolute bottom-6 right-6 z-50">
+              <Button
+                onClick={handleBulkSave}
+                disabled={isBulkSaving}
+                className="relative bg-orange-500 hover:bg-orange-600 text-white shadow-lg animate-pulse"
+                size="lg"
+              >
+                {isBulkSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save All ({nodesWithUnsavedChanges.length})
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Last Save Time Display */}
+          {lastSaveTime && (
+            <div className="absolute top-4 right-4 z-40 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-md text-sm text-gray-600">
+              Last saved: {lastSaveTime.toLocaleTimeString()}
+            </div>
           )}
         </>
       )}

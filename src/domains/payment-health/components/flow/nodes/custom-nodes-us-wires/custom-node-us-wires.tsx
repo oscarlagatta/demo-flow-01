@@ -2,12 +2,11 @@
 
 import type React from "react"
 import { memo, useMemo, useState, useRef, useCallback, useEffect } from "react"
-import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals, useReactFlow } from "@xyflow/react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Handle, Position, type NodeProps, type Node, useUpdateNodeInternals, useReactFlow } from "reactflow"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { IncidentSheet } from "@/domains/payment-health/components/sheets/incident-sheet"
 import { Clock } from "lucide-react"
 import { Loader2, Check, AlertCircle } from "lucide-react"
-
 import { useGetSplunkUsWires } from "@/domains/payment-health/hooks/use-get-splunk-us-wires/use-get-splunk-us-wires"
 import { useTransactionSearchUsWiresContext } from "@/domains/payment-health/providers/us-wires/us-wires-transaction-search-provider"
 import {
@@ -18,12 +17,10 @@ import {
 import { computeTrendColors, getTrendColorClass, type TrendColor } from "../../../../utils/trend-color-utils"
 import { CardLoadingSkeleton } from "../../../loading/loading-skeleton"
 import { EditableDescriptions } from "./editable-descriptions"
-
-import { NodeToolbar } from "./node-toolbar"
+import { NodeToolbar as CustomNodeToolbar } from "./node-toolbar"
 import { PositionDisplayOverlay } from "./position-display-overlay"
-
 import type { CustomNodeData } from "@/types/custom-node-data"
-import type { E2ERegionWireFlowModel } from "@/types/region-wire-flow-model"
+import type { E2ERegionWireFlowModel } from "@/types/e2e-region-wire-flow-model"
 import { useNodeResizePersistence } from "@/domains/payment-health/hooks/use-node-resize-persistence"
 import { getNodeIcon, getNodeIconColor, type NodeCategory } from "@/domains/payment-health/utils/node-icon-mapping"
 import { useNodePosition } from "@/domains/payment-health/hooks/use-node-position"
@@ -271,7 +268,13 @@ const CustomNodeUsWires = ({
     setIsResizing(false)
     setActiveHandle(null)
     document.body.style.cursor = "default"
-  }, [isResizing])
+
+    setHasUnsavedChanges(true)
+
+    if (updateNode) {
+      updateNode(id, { hasUnsavedChanges: true })
+    }
+  }, [isResizing, id, updateNode])
 
   const [isDetailsLoading, setIsDetailsLoading] = useState(false)
   const [isIncidentSheetOpen, setIsIncidentSheetOpen] = useState(false)
@@ -487,11 +490,19 @@ const CustomNodeUsWires = ({
     setHasUnsavedChanges(false)
   }, [data.descriptions])
 
+  // Only update when hasUnsavedChanges changes, not when entire data object changes
   useEffect(() => {
     if (updateNode) {
-      updateNode(id, { ...data, hasUnsavedChanges })
+      updateNode(id, { hasUnsavedChanges })
     }
-  }, [hasUnsavedChanges, id, data, updateNode])
+  }, [hasUnsavedChanges, id, updateNode])
+
+  useEffect(() => {
+    // If data has a position that differs from last saved, it's been moved
+    if (data.hasUnsavedChanges !== hasUnsavedChanges) {
+      setHasUnsavedChanges(data.hasUnsavedChanges || false)
+    }
+  }, [data.hasUnsavedChanges, hasUnsavedChanges])
 
   if (isLoading) {
     return <CardLoadingSkeleton className="w-full" />
@@ -518,7 +529,7 @@ const CustomNodeUsWires = ({
         />
 
         <div className="nodrag relative">
-          <NodeToolbar
+          <CustomNodeToolbar
             onAddNode={handleAddNode}
             onCreateIncident={handleCreateIncident}
             onDelete={handleDeleteNode}
@@ -530,7 +541,7 @@ const CustomNodeUsWires = ({
         </div>
 
         {data.isSelected && (
-          <NodeToolbar
+          <CustomNodeToolbar
             onAddNode={handleAddNode}
             onCreateIncident={handleCreateIncident}
             onDelete={handleDeleteNode}
